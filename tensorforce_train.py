@@ -1,13 +1,10 @@
 # Make sure you have tensorforce installed: pip install tensorforce
-import os
-import sys
 import numpy as np
 
 from pommerman.agents import SimpleAgent, RandomAgent, PlayerAgent, BaseAgent
 from pommerman.configs import ffa_v0_fast_env
 from pommerman.envs.v0 import Pomme
-from pommerman.characters import Bomber
-from pommerman import utility
+
 
 from tensorforce.agents import PPOAgent
 from tensorforce.execution import Runner
@@ -41,6 +38,8 @@ def make_np_float(feature):
     return np.array(feature).astype(np.float32)
 
 def featurize(obs):
+    # extract relevant features from the observation space
+    # expand this using logic from SimpleAgent
     board = obs["board"].reshape(-1).astype(np.float32)
     bomb_blast_strength = obs["bomb_blast_strength"].reshape(-1).astype(np.float32)
     bomb_life = obs["bomb_life"].reshape(-1).astype(np.float32)
@@ -90,9 +89,9 @@ def main():
         )
     )
 
-    # Add 2 simple agents and a random agent
+    # Add agents to train against
     agents = []
-    agents.append(RandomAgent(config["agent"](0, config["game_type"])))
+    agents.append(SimpleAgent(config["agent"](0, config["game_type"])))
     agents.append(RandomAgent(config["agent"](1, config["game_type"])))
     agents.append(RandomAgent(config["agent"](2, config["game_type"])))
 
