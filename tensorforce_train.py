@@ -1,5 +1,6 @@
 # Make sure you have tensorforce installed: pip install tensorforce
 import numpy as np
+import sys
 
 from pommerman.agents import SimpleAgent, RandomAgent, PlayerAgent, BaseAgent
 from pommerman.configs import ffa_v0_fast_env
@@ -89,6 +90,11 @@ def main():
         )
     )
 
+    if len(sys.argv) > 1 and sys.argv[1] == 'load':
+        restore_directory = 'C:/Users/Harald/Documents/Pommerman/Playground/models/'
+        agent.restore_model(restore_directory)
+        print('Model restored from', restore_directory)
+
     # Add agents to train against
     agents = []
     agents.append(SimpleAgent(config["agent"](0, config["game_type"])))
@@ -105,8 +111,10 @@ def main():
     # Instantiate and run the environment for 5 episodes.
     wrapped_env = WrappedEnv(env, True)
     runner = Runner(agent=agent, environment=wrapped_env)
-    runner.run(episodes=10, max_episode_timesteps=2000)
+    runner.run(episodes=3, max_episode_timesteps=2000)
     print("Stats: ", runner.episode_rewards, runner.episode_timesteps, runner.episode_times)
+    model_directory = agent.save_model('C:/Users/Harald/Documents/Pommerman/Playground/models/')
+    print("Model saved in", model_directory)
 
     try:
         runner.close()
