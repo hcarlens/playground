@@ -1,6 +1,8 @@
 # Make sure you have tensorforce installed: pip install tensorforce
 import numpy as np
 import sys
+import argparse
+
 
 from pommerman.agents import SimpleAgent, RandomAgent, PlayerAgent, BaseAgent
 from pommerman.configs import ffa_v0_fast_env
@@ -41,6 +43,7 @@ def make_np_float(feature):
 def featurize(obs):
     # extract relevant features from the observation space
     # expand this using logic from SimpleAgent
+
     board = obs["board"].reshape(-1).astype(np.float32)
     bomb_blast_strength = obs["bomb_blast_strength"].reshape(-1).astype(np.float32)
     bomb_life = obs["bomb_life"].reshape(-1).astype(np.float32)
@@ -69,6 +72,27 @@ class TensorforceAgent(BaseAgent):
         pass
 
 def main():
+    '''CLI interface to bootstrap taining'''
+    parser = argparse.ArgumentParser(description="Playground Flags.")
+    parser.add_argument("--load_model", default=False, action='store_true', help="Boolean. Load the most recent model? (otherwise it will train a new model from scratch)")
+    parser.add_argument(
+        "--episodes",
+        type=int,
+        default=100,
+        help="Integer. Number of episodes to run.")
+    parser.add_argument(
+        "--render",
+        default=False,
+        action='store_true',
+        help="Whether to render or not. Defaults to False.")
+    parser.add_argument(
+        "--game_state_file",
+        default=None,
+        help="File from which to load game state. Defaults to "
+        "None.")
+    args = parser.parse_args()
+
+    print('Loading environment...')
 
     # Instantiate the environment
     config = ffa_v0_fast_env()
@@ -87,10 +111,18 @@ def main():
         step_optimizer=dict(
             type='adam',
             learning_rate=1e-4
-        )
+        ),
+        summarizer=dict(directory="./board/",steps=50,labels=['graph',
+                            'losses',
+                            'reward',
+                            'inputs',
+                            'gradients',
+                            'regularizer'])
     )
 
-    if len(sys.argv) > 1 and sys.argv[1] == 'load':
+    print('Instantiating agent...')
+
+    if args.load_model:
         restore_directory = 'C:/Users/Harald/Documents/Pommerman/Playground/models/'
         agent.restore_model(restore_directory)
         print('Model restored from', restore_directory)
@@ -109,9 +141,12 @@ def main():
 
 
     # Instantiate and run the environment for 5 episodes.
-    wrapped_env = WrappedEnv(env, True)
+    wrapped_env = WrappedEnv(env, args.render)
     runner = Runner(agent=agent, environment=wrapped_env)
-    runner.run(episodes=3, max_episode_timesteps=2000)
+
+    num_episodes = args.episodes
+    print('Running training loop for', num_episodes, 'episodes')
+    runner.run(episodes=num_episodes, max_episode_timesteps=2000)
     print("Stats: ", runner.episode_rewards, runner.episode_timesteps, runner.episode_times)
     model_directory = agent.save_model('C:/Users/Harald/Documents/Pommerman/Playground/models/')
     print("Model saved in", model_directory)
