@@ -118,7 +118,7 @@ def main():
     print('Instantiating agent...')
 
     if args.load_model:
-        restore_directory = 'C:/Users/Harald/Documents/Pommerman/Playground/models/'
+        restore_directory = './models/'
         agent.restore_model(restore_directory)
         print('Model restored from', restore_directory)
     else:
