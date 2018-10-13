@@ -3,7 +3,6 @@ import numpy as np
 import sys
 import argparse
 
-
 from pommerman.agents import SimpleAgent, RandomAgent, PlayerAgent, BaseAgent
 from pommerman.configs import ffa_v0_fast_env
 from pommerman.envs.v0 import Pomme
@@ -12,6 +11,8 @@ from pommerman.envs.v0 import Pomme
 from tensorforce.agents import PPOAgent
 from tensorforce.execution import Runner
 from tensorforce.contrib.openai_gym import OpenAIGym
+from tensorboard_logger import configure
+import datetime
 
 class WrappedEnv(OpenAIGym):    
     def __init__(self, gym, visualize=False):
@@ -72,6 +73,10 @@ class TensorforceAgent(BaseAgent):
         pass
 
 def main():
+
+    # set up tensorboard logging directory for this run
+    configure('tensorboard/' + str(round(datetime.datetime.utcnow().timestamp() * 1000)))
+
     '''CLI interface to bootstrap taining'''
     parser = argparse.ArgumentParser(description="Playground Flags.")
     parser.add_argument("--load_model", default=False, action='store_true', help="Boolean. Load the most recent model? (otherwise it will train a new model from scratch)")
@@ -85,11 +90,7 @@ def main():
         default=False,
         action='store_true',
         help="Whether to render or not. Defaults to False.")
-    parser.add_argument(
-        "--game_state_file",
-        default=None,
-        help="File from which to load game state. Defaults to "
-        "None.")
+
     args = parser.parse_args()
 
     print('Loading environment...')
@@ -111,13 +112,7 @@ def main():
         step_optimizer=dict(
             type='adam',
             learning_rate=1e-4
-        ),
-        summarizer=dict(directory="./board/",steps=50,labels=['graph',
-                            'losses',
-                            'reward',
-                            'inputs',
-                            'gradients',
-                            'regularizer'])
+        )
     )
 
     print('Instantiating agent...')
@@ -126,6 +121,9 @@ def main():
         restore_directory = 'C:/Users/Harald/Documents/Pommerman/Playground/models/'
         agent.restore_model(restore_directory)
         print('Model restored from', restore_directory)
+    else:
+        print('Creating new model with random actions...')
+
 
     # Add agents to train against
     agents = []
