@@ -2,6 +2,8 @@ from tensorforce.contrib.openai_gym import OpenAIGym
 import numpy as np
 
 class WrappedEnv(OpenAIGym):    
+    featurized_obs_shape = (366,)
+
     def __init__(self, gym, visualize=False):
         self.gym = gym
         self.visualize = visualize
@@ -27,6 +29,18 @@ class WrappedEnv(OpenAIGym):
 def make_np_float(feature):
     return np.array(feature).astype(np.float32)
 
+def convert_bombs(bomb_map):
+            '''Flatten outs the bomb array'''
+            ret = []
+            locations = np.where(bomb_map > 0)
+            for r, c in zip(locations[0], locations[1]):
+                ret.append({
+                    'position': (r, c),
+                    'blast_strength': int(bomb_map[(r, c)])
+                })
+            return ret
+
+
 def featurize(obs):
     # extract relevant features from the observation space
     # expand this using logic from SimpleAgent
@@ -38,7 +52,6 @@ def featurize(obs):
     ammo = make_np_float([obs["ammo"]])
     blast_strength = make_np_float([obs["blast_strength"]])
     can_kick = make_np_float([obs["can_kick"]])
-
     teammate = obs["teammate"]
     if teammate is not None:
         teammate = teammate.value
@@ -52,5 +65,6 @@ def featurize(obs):
         enemies = enemies + [-1]*(3 - len(enemies))
     enemies = make_np_float(enemies)
 
-    return np.concatenate((board, bomb_blast_strength, bomb_life, position, ammo, blast_strength, can_kick, teammate, enemies))
-
+    # start with a simpler state space
+    #return np.concatenate((board, bomb_blast_strength, bomb_life, position, ammo, blast_strength, can_kick, teammate, enemies))
+    return np.concatenate((board, bomb_blast_strength, bomb_life, position, ammo))#, blast_strength, can_kick, teammate, enemies))

@@ -1,9 +1,7 @@
 # Make sure you have tensorforce installed: pip install tensorforce
-import numpy as np
-import sys
 import argparse
 
-from pommerman.agents import SimpleAgent, RandomAgent, PlayerAgent, BaseAgent
+from pommerman.agents import SimpleAgent, RandomAgent, BaseAgent
 from pommerman.configs import ffa_v0_fast_env
 from pommerman.envs.v0 import Pomme
 
@@ -29,7 +27,7 @@ def main():
     parser.add_argument(
         "--episodes",
         type=int,
-        default=100,
+        default=1000,
         help="Integer. Number of episodes to run.")
     parser.add_argument(
         "--render",
@@ -45,10 +43,10 @@ def main():
     config = ffa_v0_fast_env()
     env = Pomme(**config["env_kwargs"])
     env.seed(0)
-
+    print(env.observation_space.shape)
     # Create a Proximal Policy Optimization agent
     agent = PPOAgent(
-        states=dict(type='float', shape=env.observation_space.shape),
+        states=dict(type='float', shape=WrappedEnv.featurized_obs_shape),
         actions=dict(type='int', num_actions=env.action_space.n),
         network=[
             dict(type='dense', size=64),
@@ -69,7 +67,6 @@ def main():
         print('Model restored from', restore_directory)
     else:
         print('Creating new model with random actions...')
-
 
     # Add agents to train against
     agents = []
