@@ -6,7 +6,7 @@ from pommerman.configs import ffa_v0_fast_env
 from pommerman.envs.v0 import Pomme
 
 
-from tensorforce.agents import PPOAgent
+from tensorforce.agents import PPOAgent, DQNAgent
 from tensorforce.execution import Runner
 from tensorboard_logger import configure
 import datetime
@@ -25,8 +25,7 @@ def main():
     parser = argparse.ArgumentParser(description="Playground Flags.")
     parser.add_argument("--load_model", default=False, action='store_true', help="Boolean. Load the most recent model? (otherwise it will train a new model from scratch)")
     parser.add_argument(
-        "--episodes",
-        type=int,
+        "--episodes", type=int,
         default=1000,
         help="Integer. Number of episodes to run.")
     parser.add_argument(
@@ -34,7 +33,14 @@ def main():
         default=False,
         action='store_true',
         help="Whether to render or not. Defaults to False.")
-
+    parser.add_argument(
+        "--agent",
+        default='PPO',
+        help="What type of RL agent to train. Options: DQN, PPO. ")
+    parser.add_argument(
+        "--opponents",
+        default='SSS',
+        help="Which agents to train against, out of simple and random. E.g. SSS = three simple agents, SRR = 1 simple and 2 random. ")
     args = parser.parse_args()
 
     print('Loading environment...')
@@ -44,20 +50,34 @@ def main():
     env = Pomme(**config["env_kwargs"])
     env.seed(0)
     print(env.observation_space.shape)
-    # Create a Proximal Policy Optimization agent
-    agent = PPOAgent(
-        states=dict(type='float', shape=WrappedEnv.featurized_obs_shape),
-        actions=dict(type='int', num_actions=env.action_space.n),
-        network=[
-            dict(type='dense', size=64),
-            dict(type='dense', size=64)
-        ],
-        batching_capacity=1000,
-        step_optimizer=dict(
-            type='adam',
-            learning_rate=1e-4
+    agent = []
+    if args.agent == 'PPO':
+        # Create a Proximal Policy Optimization agent
+        agent = PPOAgent( states=dict(type='float', shape=WrappedEnv.featurized_obs_shape),
+            actions=dict(type='int', num_actions=env.action_space.n),
+            network=[
+                dict(type='dense', size=64),
+                dict(type='dense', size=64)
+            ],
+            batching_capacity=1000,
+            step_optimizer=dict(
+                type='adam',
+                learning_rate=1e-4
+            )
         )
-    )
+    elif args.agent == 'DQN':
+        # Create a DQN agent
+        agent = DQNAgent( states=dict(type='float', shape=WrappedEnv.featurized_obs_shape),
+            actions=dict(type='int', num_actions=env.action_space.n),
+            network=[
+                dict(type='dense', size=64),
+                dict(type='dense', size=64)
+            ],
+            double_q_model=False,
+            target_sync_frequency=10000,
+            discount=0.99
+            )
+
 
     print('Instantiating agent...')
 
@@ -70,9 +90,13 @@ def main():
 
     # Add agents to train against
     agents = []
-    agents.append(SimpleAgent(config["agent"](0, config["game_type"])))
-    agents.append(RandomAgent(config["agent"](1, config["game_type"])))
-    agents.append(RandomAgent(config["agent"](2, config["game_type"])))
+    num_agents = 0
+    for i in range(args.opponents.count('S')):
+        agents.append(SimpleAgent(config["agent"](num_agents, config["game_type"])))
+        num_agents+=1
+    for i in range(args.opponents.count('R')):
+        agents.append(RandomAgent(config["agent"](num_agents, config["game_type"])))
+        num_agents+=1
 
     # Add TensorforceAgent
     agents.append(TensorforceAgent(config["agent"](3, config["game_type"])))
