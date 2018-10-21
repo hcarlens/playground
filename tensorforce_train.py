@@ -19,13 +19,27 @@ class TensorforceAgent(BaseAgent):
         pass
 
 class TrainingConfig:
-    def __init__(self, rl_agent, num_episodes, opponents, render, load_most_recent_model, discount):
+    # defaults are specified in this awkward way so we can take None inputs from CLI and override them
+    def __init__(self, rl_agent=None, num_episodes=None, opponents=None, render=None,
+            load_most_recent_model=None, discount=None, variable_noise=None, neural_net=None,
+            batching_capacity=None, double_q_model=None, target_sync_frequency=None,
+            optimizer_type=None, optimizer_lr=None):
         self.rl_agent = rl_agent if rl_agent else 'DQN'
         self.num_episodes = num_episodes if num_episodes else 1000
         self.opponents = opponents if opponents else 'SSS'
         self.render = render if render else False
         self.discount = discount if discount else 0.99
+        self.variable_noise = variable_noise if variable_noise else None
+        self.batching_capacity = batching_capacity if batching_capacity else 1000
+        self.double_q_model = double_q_model if double_q_model else True
+        self.target_sync_frequency = target_sync_frequency if target_sync_frequency  else 10000
+        self.neural_net = neural_net if neural_net else [
+                dict(type='dense', size=64),
+                dict(type='dense', size=64)
+            ]
         self.load_most_recent_model = load_most_recent_model if load_most_recent_model else False
+        self.optimizer_type = optimizer_type if optimizer_type else 'adam'
+        self.optimizer_lr = optimizer_lr if optimizer_lr else 1e-3
 
 def main():
     '''CLI interface to bootstrap taining'''
@@ -52,11 +66,15 @@ def main():
         "--discount",
         default=None,
         help="Gamma parameter, defining how much to value future timesteps vs current timesteps.")
+    parser.add_argument(
+        "--variable_noise",
+        default=None,
+        help="Standard deviation of noise to add to parameter space (see NoisyNets paper).")
     args = parser.parse_args()
 
     # create an object to define this training run. Args loaded from CLI, but can also be loaded from config.
     training_config = TrainingConfig(rl_agent=args.agent, num_episodes=args.episodes, opponents=args.opponents,
-    render=args.render, load_most_recent_model=args.load_model, discount=args.discount)
+    render=args.render, load_most_recent_model=args.load_model, discount=args.discount, variable_noise=args.variable_noise)
 
     # set up tensorboard logging directory for this run
     log_directory = 'data/' + datetime.datetime.now().strftime('%d_%m/%H_%M_%S') + '-' + training_config.rl_agent + '-' + training_config.opponents
@@ -79,27 +97,27 @@ def main():
         # Create a Proximal Policy Optimization agent
         agent = PPOAgent(states=dict(type='float', shape=WrappedEnv.featurized_obs_shape),
             actions=dict(type='int', num_actions=env.action_space.n),
-            network=[
-                dict(type='dense', size=64),
-                dict(type='dense', size=64)
-            ],
-            batching_capacity=1000,
+            network=training_config.neural_net,
+            batching_capacity=training_config.batching_capacity,
             step_optimizer=dict(
-                type='adam',
-                learning_rate=1e-4
-            )
+                type=training_config.optimizer_type,
+                learning_rate=training_config.optimizer_lr
+            ),
+            discount=training_config.discount
         )
     elif training_config.rl_agent == 'DQN':
         # Create a DQN agent
         agent = DQNAgent(states=dict(type='float', shape=WrappedEnv.featurized_obs_shape),
             actions=dict(type='int', num_actions=env.action_space.n),
-            network=[
-                dict(type='dense', size=64),
-                dict(type='dense', size=64)
-            ],
-            double_q_model=False,
-            target_sync_frequency=10000,
-            discount=0.99
+            network=training_config.neural_net,
+            batching_capacity=training_config.batching_capacity,
+            double_q_model=training_config.double_q_model,
+            target_sync_frequency=training_config.target_sync_frequency,
+            discount=training_config.discount,
+            optimizer=dict(
+                type=training_config.optimizer_type,
+                learning_rate=training_config.optimizer_lr
+            )
             )
 
 
