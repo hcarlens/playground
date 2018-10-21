@@ -1,5 +1,7 @@
 # Make sure you have tensorforce installed: pip install tensorforce
 import argparse
+import yaml
+import os
 
 from pommerman.agents import SimpleAgent, RandomAgent, BaseAgent
 from pommerman.configs import ffa_v0_fast_env
@@ -8,7 +10,7 @@ from pommerman.envs.v0 import Pomme
 
 from tensorforce.agents import PPOAgent, DQNAgent
 from tensorforce.execution import Runner
-from tensorboard_logger import configure
+import tensorboard_logger 
 import datetime
 from wrappedenv import featurize, WrappedEnv
 
@@ -26,7 +28,6 @@ class TrainingConfig:
         self.load_most_recent_model = load_most_recent_model if load_most_recent_model else False
 
 def main():
-
     '''CLI interface to bootstrap taining'''
     parser = argparse.ArgumentParser(description="Playground Flags.")
     parser.add_argument("--load_model", default=False, action='store_true', help="Boolean. Load the most recent model? (otherwise it will train a new model from scratch)")
@@ -58,7 +59,14 @@ def main():
     render=args.render, load_most_recent_model=args.load_model, discount=args.discount)
 
     # set up tensorboard logging directory for this run
-    configure('tensorboard/' + str(round(datetime.datetime.utcnow().timestamp() * 1000)))
+    log_directory = 'data/' + datetime.datetime.now().strftime('%d_%m/%H_%M_%S') + '-' + training_config.rl_agent + '-' + training_config.opponents
+    if not os.path.exists(log_directory):
+        os.makedirs(log_directory)
+    tensorboard_logger.configure(log_directory)
+
+    # add config file to logging directory, so we know what settings this run used
+    with open(log_directory + '/config.yml', 'w+') as outfile:
+        yaml.dump(training_config, outfile, default_flow_style=False)
 
     print('Loading environment...')
 
@@ -66,7 +74,6 @@ def main():
     config = ffa_v0_fast_env()
     env = Pomme(**config["env_kwargs"])
     env.seed(0)
-    print(env.observation_space.shape)
     agent = []
     if training_config.rl_agent == 'PPO':
         # Create a Proximal Policy Optimization agent
@@ -137,7 +144,6 @@ def main():
         runner.close()
     except AttributeError as e:
         pass
-
 
 if __name__ == '__main__':
     main()
