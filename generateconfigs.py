@@ -10,7 +10,7 @@ def main():
     '''CLI to generate configs for different settings to try'''
     parser = argparse.ArgumentParser(description="Tensorforce Training Flags.")
     parser.add_argument(
-        "--config_directory", default=None, help="Location to store generated config files")
+        "--config_directory", default='configs', help="Location to store generated config files")
     parser.add_argument(
         "--episodes", type=int, default=None, help="Integer. Number of episodes to run.")
     parser.add_argument(
@@ -18,12 +18,12 @@ def main():
     args = parser.parse_args()
 
     rl_agents = ['PPO', 'DQN']
-    optimizer_types = ['adam','rmsprop']
+    optimizer_types = ['adam', 'rmsprop']
     optimizer_lrs = [1e-2, 1e-3, 1e-4, 1e-5]
     neural_nets = [
-        dict(type='dense', size=64), dict(type='dense', size=64),
-        dict(type='dense', size=20), dict(type='dense', size=20),
-        dict(type='dense', size=100), dict(type='dense', size=100)
+        [dict(type='dense', size=64), dict(type='dense', size=64)],
+        [dict(type='dense', size=20), dict(type='dense', size=20)],
+        [dict(type='dense', size=100), dict(type='dense', size=100)]
         ]
     discounts = [0.9, 0.99, 0.999, 1]
     variable_noises = [None, 0.1, 1, 10]

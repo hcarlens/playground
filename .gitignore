@@ -180,3 +180,4 @@ a/static/css/*
 models/
 tensorboard/
 data/
+configs/
