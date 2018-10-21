@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+
+# SSH onto the remote machine with the -A flag set. Then run the below script.
+
+echo "Pulling playground repo..."
+git clone git@github.com:hcarlens/playground.git
+
+pushd playground/ > /dev/null
+  pip3 install -r requirements.txt
+
+  # might be nicer to use tmux here
+  screen -d -m bash -c "python3 tensorforce_train.py"
+  echo "Started training run."
+
+  screen -d -m bash -c "tensorboard --host 0.0.0.0 --logdir ./data"
+  echo "Tensorboard running on port 6006."
+popd > /dev/null
+
