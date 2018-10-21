@@ -46,6 +46,10 @@ def main():
     parser = argparse.ArgumentParser(description="Playground Flags.")
     parser.add_argument("--load_model", default=False, action='store_true', help="Boolean. Load the most recent model? (otherwise it will train a new model from scratch)")
     parser.add_argument(
+        "--config_file",
+        default=None,
+        help="Yaml config file from which to load training_config settings")
+    parser.add_argument(
         "--episodes", type=int,
         default=None,
         help="Integer. Number of episodes to run.")
@@ -73,8 +77,12 @@ def main():
     args = parser.parse_args()
 
     # create an object to define this training run. Args loaded from CLI, but can also be loaded from config.
-    training_config = TrainingConfig(rl_agent=args.agent, num_episodes=args.episodes, opponents=args.opponents,
-    render=args.render, load_most_recent_model=args.load_model, discount=args.discount, variable_noise=args.variable_noise)
+    if args.config_file is not None:
+        with open(args.config_file, 'r') as f:
+            training_config = yaml.load(f)
+    else:
+        training_config = TrainingConfig(rl_agent=args.agent, num_episodes=args.episodes, opponents=args.opponents,
+            render=args.render, load_most_recent_model=args.load_model, discount=args.discount, variable_noise=args.variable_noise)
 
     # set up tensorboard logging directory for this run
     log_directory = 'data/' + datetime.datetime.now().strftime('%d_%m/%H_%M_%S') + '-' + training_config.rl_agent + '-' + training_config.opponents
