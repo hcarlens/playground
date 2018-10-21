@@ -1,24 +1,26 @@
 # Make sure you have tensorforce installed: pip install tensorforce
 import argparse
-import yaml
 import os
+import datetime
+import yaml
 
 from pommerman.agents import SimpleAgent, RandomAgent, BaseAgent
 from pommerman.configs import ffa_v0_fast_env
 from pommerman.envs.v0 import Pomme
 
-
 from tensorforce.agents import PPOAgent, DQNAgent
 from tensorforce.execution import Runner
-import tensorboard_logger 
-import datetime
-from wrappedenv import featurize, WrappedEnv
+import tensorboard_logger
+from wrappedenv import WrappedEnv
 
 class TensorforceAgent(BaseAgent):
     def act(self, obs, action_space):
         pass
 
 class TrainingConfig:
+    """
+    This class defines a single training run. 
+    """
     # defaults are specified in this awkward way so we can take None inputs from CLI and override them
     def __init__(self, rl_agent=None, num_episodes=None, opponents=None, render=None,
             load_most_recent_model=None, discount=None, variable_noise=None, neural_net=None,
@@ -43,6 +45,9 @@ class TrainingConfig:
         self.max_episode_timesteps = max_episode_timesteps if max_episode_timesteps else 2000
 
 class TensorforceTrainer:
+    """
+    This class deals with setting up a training run from a config file, and running it.
+    """
     def __init__(self, training_config):
         # set up tensorboard logging directory for this run
         log_directory = 'data/' + datetime.datetime.now().strftime('%d_%m/%H_%M_%S') + '-' + training_config.rl_agent + '-' + training_config.opponents
@@ -139,34 +144,19 @@ def main():
     parser = argparse.ArgumentParser(description="Tensorforce Training Flags.")
     parser.add_argument("--load_model", default=False, action='store_true', help="Boolean. Load the most recent model? (otherwise it will train a new model from scratch)")
     parser.add_argument(
-        "--config_file",
-        default=None,
-        help="Yaml config file from which to load training_config settings")
+        "--config_file", default=None, help="Yaml config file from which to load training_config settings")
     parser.add_argument(
-        "--episodes", type=int,
-        default=None,
-        help="Integer. Number of episodes to run.")
+        "--episodes", type=int, default=None, help="Integer. Number of episodes to run.")
     parser.add_argument(
-        "--render",
-        default=None,
-        action='store_true',
-        help="Whether to render or not. Defaults to False.")
+        "--render", default=None, action='store_true', help="Whether to render or not. Defaults to False.")
     parser.add_argument(
-        "--agent",
-        default=None,
-        help="What type of RL agent to train. Options: DQN, PPO. ")
+        "--agent", default=None, help="What type of RL agent to train. Options: DQN, PPO. ")
     parser.add_argument(
-        "--opponents",
-        default=None,
-        help="Which agents to train against, out of simple and random. E.g. SSS = three simple agents, SRR = 1 simple and 2 random. ")
+        "--opponents", default=None, help="Which agents to train against, out of simple and random. E.g. SSS = three simple agents, SRR = 1 simple and 2 random. ")
     parser.add_argument(
-        "--discount",
-        default=None,
-        help="Gamma parameter, defining how much to value future timesteps vs current timesteps.")
+        "--discount", default=None, help="Gamma parameter, defining how much to value future timesteps vs current timesteps.")
     parser.add_argument(
-        "--variable_noise",
-        default=None,
-        help="Standard deviation of noise to add to parameter space (see NoisyNets paper).")
+        "--variable_noise", default=None, help="Standard deviation of noise to add to parameter space (see NoisyNets paper).")
     args = parser.parse_args()
 
     # create an object to define this training run. Args loaded from CLI, but can also be loaded from config.
