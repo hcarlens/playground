@@ -12,22 +12,21 @@ def main():
     parser.add_argument(
         "--config_directory", default='configs', help="Location to store generated config files")
     parser.add_argument(
-        "--episodes", type=int, default=None, help="Integer. Number of episodes to run.")
+        "--episodes", type=int, default=3000, help="Integer. Number of episodes to run.")
     parser.add_argument(
         "--opponents", default=None, help="Which agents to train against, out of simple and random. E.g. SSS = three simple agents, SRR = 1 simple and 2 random. ")
     args = parser.parse_args()
 
     rl_agents = ['PPO', 'DQN']
     optimizer_types = ['adam', 'rmsprop']
-    optimizer_lrs = [1e-2, 1e-3, 1e-4, 1e-5]
+    optimizer_lrs = [1e-3, 1e-4, 1e-5]
     neural_nets = [
         [dict(type='dense', size=64), dict(type='dense', size=64)],
-        [dict(type='dense', size=20), dict(type='dense', size=20)],
-        [dict(type='dense', size=100), dict(type='dense', size=100)]
+        [dict(type='dense', size=20), dict(type='dense', size=20)]
         ]
-    discounts = [0.9, 0.99, 0.999, 1]
-    variable_noises = [None, 0.1, 1, 10]
-    target_sync_frequencies = [100, 1000, 10000]
+    discounts = [0.9, 0.99, 1]
+    variable_noises = [None, 1, 10]
+    target_sync_frequencies = [1000, 10000]
     # also consider trying: different types of memory, batching capacities
 
     current_config_num = 0
