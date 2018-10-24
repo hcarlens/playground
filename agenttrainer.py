@@ -73,7 +73,14 @@ def createAgent(training_config, action_space_dim):
             )
             )
 
-    
+def initialiseEnvironment(environment_type):
+    if environment_type == 'ffa_v0':
+        config = ffa_v0_fast_env()
+        env = Pomme(**config["env_kwargs"])
+        env.seed(0)
+        return env, config
+
+
 class AgentTrainer:
     """
     This class deals with setting up a training run from a config file, and running it.
@@ -94,10 +101,7 @@ class AgentTrainer:
             yaml.dump(training_config, outfile, default_flow_style=False)
         print('Loading environment...')
 
-        # Instantiate the environment
-        config = ffa_v0_fast_env()
-        env = Pomme(**config["env_kwargs"])
-        env.seed(0)
+        env, config = initialiseEnvironment('ffa_v0')
 
         self.agent = createAgent(training_config,env.action_space.n)
 
