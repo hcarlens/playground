@@ -1,14 +1,13 @@
-# Make sure you have tensorforce installed: pip install tensorforce
 import argparse
 import os
 import datetime
 import yaml
 
-from tensorforcetrainer import TrainingConfig
+from agenttrainer import TrainingConfig
 
 def main():
     '''CLI to generate configs for different settings to try'''
-    parser = argparse.ArgumentParser(description="Tensorforce Training Flags.")
+    parser = argparse.ArgumentParser(description="Config generator training flags.")
     parser.add_argument(
         "--config_directory", default='configs', help="Location to store generated config files")
     parser.add_argument(

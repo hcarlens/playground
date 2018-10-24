@@ -23,11 +23,11 @@ class TrainingConfig:
     """
     # defaults are specified in this awkward way so we can take None inputs from CLI and override them
     def __init__(self, rl_agent=None, num_episodes=None, opponents=None, render=None,
-            load_most_recent_model=None, discount=None, variable_noise=None, neural_net=None,
+            model_directory=None, discount=None, variable_noise=None, neural_net=None,
             batching_capacity=None, double_q_model=None, target_sync_frequency=None,
             optimizer_type=None, optimizer_lr=None, max_episode_timesteps=None):
         self.rl_agent = rl_agent if rl_agent else 'DQN'
-        self.num_episodes = num_episodes if num_episodes else 1000
+        self.num_episodes = num_episodes if num_episodes else 10000
         self.opponents = opponents if opponents else 'SSS'
         self.render = render if render else False
         self.discount = discount if discount else 0.99
@@ -39,24 +39,58 @@ class TrainingConfig:
                 dict(type='dense', size=64),
                 dict(type='dense', size=64)
             ]
-        self.load_most_recent_model = load_most_recent_model if load_most_recent_model else False
+        self.model_directory = model_directory if model_directory else False
         self.optimizer_type = optimizer_type if optimizer_type else 'adam'
         self.optimizer_lr = optimizer_lr if optimizer_lr else 1e-3
         self.max_episode_timesteps = max_episode_timesteps if max_episode_timesteps else 2000
 
-class TensorforceTrainer:
+def createAgent(training_config, action_space_dim):
+    """ Create an agent based on a set of configs """
+    if training_config.rl_agent == 'PPO':
+        # Create a Proximal Policy Optimization agent
+        return PPOAgent(states=dict(type='float', shape=WrappedEnv.featurized_obs_shape),
+            actions=dict(type='int', num_actions=action_space_dim),
+            network=training_config.neural_net,
+            batching_capacity=training_config.batching_capacity,
+            step_optimizer=dict(
+                type=training_config.optimizer_type,
+                learning_rate=training_config.optimizer_lr
+            ),
+            discount=training_config.discount
+        )
+    elif training_config.rl_agent == 'DQN':
+        # Create a DQN agent
+        return DQNAgent(states=dict(type='float', shape=WrappedEnv.featurized_obs_shape),
+            actions=dict(type='int', num_actions=action_space_dim),
+            network=training_config.neural_net,
+            batching_capacity=training_config.batching_capacity,
+            double_q_model=training_config.double_q_model,
+            target_sync_frequency=training_config.target_sync_frequency,
+            discount=training_config.discount,
+            optimizer=dict(
+                type=training_config.optimizer_type,
+                learning_rate=training_config.optimizer_lr
+            )
+            )
+
+    
+class AgentTrainer:
     """
     This class deals with setting up a training run from a config file, and running it.
     """
     def __init__(self, training_config):
+        if training_config.model_directory:
+            self.data_directory = training_config.model_directory
+        else:
+            self.data_directory = 'data/' + datetime.datetime.now().strftime('%d_%m/%H_%M_%S.%f') + '-' + training_config.rl_agent + '-' + training_config.opponents + '/'
+
         # set up tensorboard logging directory for this run
-        log_directory = 'data/' + datetime.datetime.now().strftime('%d_%m/%H_%M_%S') + '-' + training_config.rl_agent + '-' + training_config.opponents
-        if not os.path.exists(log_directory):
-            os.makedirs(log_directory)
-        tensorboard_logger.configure(log_directory)
+        if not os.path.exists(self.data_directory):
+            os.makedirs(self.data_directory)
+        tensorboard_logger.configure(self.data_directory)
 
         # add config file to logging directory, so we know what settings this run used
-        with open(log_directory + '/config.yml', 'w+') as outfile:
+        with open(self.data_directory + 'config.yml', 'w+') as outfile:
             yaml.dump(training_config, outfile, default_flow_style=False)
         print('Loading environment...')
 
@@ -64,41 +98,14 @@ class TensorforceTrainer:
         config = ffa_v0_fast_env()
         env = Pomme(**config["env_kwargs"])
         env.seed(0)
-        agent = []
-        if training_config.rl_agent == 'PPO':
-            # Create a Proximal Policy Optimization agent
-            agent = PPOAgent(states=dict(type='float', shape=WrappedEnv.featurized_obs_shape),
-                actions=dict(type='int', num_actions=env.action_space.n),
-                network=training_config.neural_net,
-                batching_capacity=training_config.batching_capacity,
-                step_optimizer=dict(
-                    type=training_config.optimizer_type,
-                    learning_rate=training_config.optimizer_lr
-                ),
-                discount=training_config.discount
-            )
-        elif training_config.rl_agent == 'DQN':
-            # Create a DQN agent
-            agent = DQNAgent(states=dict(type='float', shape=WrappedEnv.featurized_obs_shape),
-                actions=dict(type='int', num_actions=env.action_space.n),
-                network=training_config.neural_net,
-                batching_capacity=training_config.batching_capacity,
-                double_q_model=training_config.double_q_model,
-                target_sync_frequency=training_config.target_sync_frequency,
-                discount=training_config.discount,
-                optimizer=dict(
-                    type=training_config.optimizer_type,
-                    learning_rate=training_config.optimizer_lr
-                )
-                )
 
+        self.agent = createAgent(training_config,env.action_space.n)
 
         print('Instantiating agent...')
 
-        if training_config.load_most_recent_model:
-            restore_directory = './models/'
-            agent.restore_model(restore_directory)
-            print('Model restored from', restore_directory)
+        if training_config.model_directory:
+            self.agent.restore_model(training_config.model_directory)
+            print('Model restored from', training_config.model_directory)
         else:
             print('Creating new model with random actions...')
 
@@ -118,7 +125,6 @@ class TensorforceTrainer:
         env.set_training_agent(agents[-1].agent_id)
         env.set_init_game_state(None)
 
-        self.agent = agent
         self.env = env
         self.training_config = training_config
 
@@ -131,7 +137,7 @@ class TensorforceTrainer:
         print('Running training loop for', num_episodes, 'episodes')
         runner.run(episodes=num_episodes, max_episode_timesteps=self.training_config.max_episode_timesteps)
         print("Stats: ", runner.episode_rewards, runner.episode_timesteps, runner.episode_times)
-        model_directory = self.agent.save_model('./models/')
+        model_directory = self.agent.save_model(self.data_directory)
         print("Model saved in", model_directory)
 
         try:
@@ -141,8 +147,8 @@ class TensorforceTrainer:
 
 def main():
     '''CLI interface to bootstrap taining'''
-    parser = argparse.ArgumentParser(description="Tensorforce Training Flags.")
-    parser.add_argument("--load_model", default=False, action='store_true', help="Boolean. Load the most recent model? (otherwise it will train a new model from scratch)")
+    parser = argparse.ArgumentParser(description="Agent Training Flags.")
+    parser.add_argument("--model_directory", default=None, help="Directory from which to load an existing model. ")
     parser.add_argument(
         "--config_file", default=None, help="Yaml config file from which to load training_config settings")
     parser.add_argument(
@@ -165,10 +171,10 @@ def main():
             training_config = yaml.load(f)
     else:
         training_config = TrainingConfig(rl_agent=args.agent, num_episodes=args.episodes, opponents=args.opponents,
-            render=args.render, load_most_recent_model=args.load_model, discount=args.discount, variable_noise=args.variable_noise)
+            render=args.render, model_directory=args.model_directory, discount=args.discount, variable_noise=args.variable_noise)
 
-    tensorforce_trainer = TensorforceTrainer(training_config)
-    tensorforce_trainer.run()
+    agent_trainer = AgentTrainer(training_config)
+    agent_trainer.run()
 
 if __name__ == '__main__':
     main()
