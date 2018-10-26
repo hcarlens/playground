@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -x
+
+pushd "$(dirname "$0")" > /dev/null; pushd .. > /dev/null
+  # make sure we have some configs
+  if [ ! -d configs ]; then
+    echo "No configs found"
+    exit 1
+  fi
+
+  NUM_PROCESSORS="$(grep -c ^processor /proc/cpuinfo)"
+
+  ls -A configs | xargs -P "$NUM_PROCESSORS" -IN python3 agenttrainer.py --config_file N
+popd; popd
