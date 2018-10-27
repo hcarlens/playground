@@ -3,10 +3,14 @@
 set -x
 
 pushd "$(dirname "$0")" > /dev/null; pushd .. > /dev/null
+  # install dependencies
+  pip3 install -r requirements.txt
+  pip3 install tensorforce
+
   # make sure we have some configs
   if [ ! -d configs ]; then
-    echo "No configs found"
-    exit 1
+    mkdir configs
+    python3 generateconfigs.py
   fi
 
   NUM_PROCESSORS="$(grep -c ^processor /proc/cpuinfo)"
