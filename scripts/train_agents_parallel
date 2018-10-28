@@ -16,9 +16,11 @@ pushd "$(dirname "$0")" > /dev/null; pushd .. > /dev/null
     python3 generateconfigs.py
   fi
 
-  NUM_PROCESSORS="$(grep -c ^processor /proc/cpuinfo)"
+  #NUM_PROCESSORS="$(grep -c ^processor /proc/cpuinfo)"
+  NUM_PROCESSORS=1
 
   set +e
   set -x
-  ls -A configs | xargs -P "$NUM_PROCESSORS" -IN python3 agenttrainer.py --config_file N
+  ls -A configs | xargs -P "$NUM_PROCESSORS" -I% python3 \
+    agenttrainer.py --config_file configs/%
 popd; popd
