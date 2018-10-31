@@ -12,4 +12,4 @@ pylint~=1.9.2
 tensorflow~=1.11.0
 pyyaml
 tensorboard_logger
-git+ssh://git@github.com/hcarlens/tensorforce.git@master#egg=tensorforce
+git+ssh://git@github.com/hcarlens/tensorforce.git@working#egg=tensorforce
