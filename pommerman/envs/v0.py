@@ -17,6 +17,7 @@ from .. import constants
 from .. import graphics
 from .. import utility
 from pommerman.forward_models.original_forward_model import OriginalForwardModel
+from pommerman.forward_models.weighted_forward_model import WeightedForwardModel
 
 
 class Pomme(gym.Env):
@@ -36,6 +37,7 @@ class Pomme(gym.Env):
                  max_steps=1000,
                  is_partially_observable=False,
                  env=None,
+                 forward_model="original",
                  **kwargs):
         self._render_fps = render_fps
         self._intended_actions = []
@@ -52,7 +54,11 @@ class Pomme(gym.Env):
         self._env = env
 
         self.training_agent = None
-        self.model = OriginalForwardModel()
+
+        self.model = {
+            'original':  OriginalForwardModel(),
+            'weighted':  WeightedForwardModel(),
+            }[forward_model]
 
         # This can be changed through set_render_mode
         # or from the cli tool using '--render_mode=MODE_TYPE'
