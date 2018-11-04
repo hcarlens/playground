@@ -26,7 +26,7 @@ class TrainingConfig:
             model_directory=None, discount=None, variable_noise=None, neural_net=None,
             batching_capacity=None, double_q_model=None, target_sync_frequency=None,
             optimizer_type=None, optimizer_lr=None, max_episode_timesteps=None,
-            environment=None):
+            environment=None, feature_version=None):
         self.rl_agent = rl_agent if rl_agent else 'DQN'
         self.num_episodes = num_episodes if num_episodes else 10000
         self.opponents = opponents if opponents else 'SSS'
@@ -44,13 +44,14 @@ class TrainingConfig:
         self.optimizer_type = optimizer_type if optimizer_type else 'adam'
         self.optimizer_lr = optimizer_lr if optimizer_lr else 1e-3
         self.max_episode_timesteps = max_episode_timesteps if max_episode_timesteps else 2000
-        self.environment = environment if environment else 'FFA'
+        self.environment = environment.lower() if environment else 'ffa'
+        self.feature_version = feature_version if feature_version else 0
 
 def createAgent(training_config, action_space_dim):
     """ Create an agent based on a set of configs """
     if training_config.rl_agent == 'PPO':
         # Create a Proximal Policy Optimization agent
-        return PPOAgent(states=dict(type='float', shape=WrappedEnv.featurized_obs_shape),
+        return PPOAgent(states=dict(type='float', shape=WrappedEnv.featurized_obs_shape[training_config.feature_version]),
             actions=dict(type='int', num_actions=action_space_dim),
             network=training_config.neural_net,
             batching_capacity=training_config.batching_capacity,
@@ -62,7 +63,7 @@ def createAgent(training_config, action_space_dim):
         )
     elif training_config.rl_agent == 'DQN':
         # Create a DQN agent
-        return DQNAgent(states=dict(type='float', shape=WrappedEnv.featurized_obs_shape),
+        return DQNAgent(states=dict(type='float', shape=WrappedEnv.featurized_obs_shape[training_config.feature_version]),
             actions=dict(type='int', num_actions=action_space_dim),
             network=training_config.neural_net,
             batching_capacity=training_config.batching_capacity,
@@ -94,7 +95,7 @@ class AgentTrainer:
         if training_config.model_directory:
             self.data_directory = training_config.model_directory
         else:
-            self.data_directory = 'data/' + datetime.datetime.now().strftime('%d_%m/%H_%M_%S.%f') + '-' + training_config.rl_agent + '-' + training_config.opponents + '/'
+            self.data_directory = 'data/' + datetime.datetime.now().strftime('%d_%m/%H_%M_%S.%f') + '-' + training_config.environment + '-' + training_config.rl_agent + '-' + training_config.opponents + '/'
 
         # set up tensorboard logging directory for this run
         if not os.path.exists(self.data_directory):
@@ -139,7 +140,7 @@ class AgentTrainer:
 
     def run(self):
         # Instantiate and run the environment.
-        wrapped_env = WrappedEnv(self.env, self.training_config.render)
+        wrapped_env = WrappedEnv(self.env, feature_version=self.training_config.feature_version, visualize=self.training_config.render)
         runner = Runner(agent=self.agent, environment=wrapped_env)
 
         num_episodes = self.training_config.num_episodes
@@ -158,6 +159,8 @@ def main():
     '''CLI interface to bootstrap taining'''
     parser = argparse.ArgumentParser(description="Agent Training Flags.")
     parser.add_argument("--model_directory", default=None, help="Directory from which to load an existing model. ")
+    parser.add_argument(
+        "--feature_version", type=int, default=None, help="Which version of the feature space to use.")
     parser.add_argument(
         "--environment", default=None, help="FFA or Team. (not case sensitive)")
     parser.add_argument(
@@ -180,9 +183,12 @@ def main():
     if args.config_file is not None:
         with open(args.config_file, 'r') as f:
             training_config = yaml.load(f)
+            if not training_config.feature_version:
+                training_config.feature_version = 0
     else:
         training_config = TrainingConfig(rl_agent=args.agent, num_episodes=args.episodes, opponents=args.opponents,
-            render=args.render, model_directory=args.model_directory, discount=args.discount, variable_noise=args.variable_noise, environment=args.environment)
+            render=args.render, model_directory=args.model_directory, discount=args.discount, 
+            variable_noise=args.variable_noise, environment=args.environment, feature_version=args.feature_version)
 
     agent_trainer = AgentTrainer(training_config)
     agent_trainer.run()

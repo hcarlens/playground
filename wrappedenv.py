@@ -1,12 +1,14 @@
 from tensorforce.contrib.openai_gym import OpenAIGym
 import numpy as np
+from pommerman import constants
 
 class WrappedEnv(OpenAIGym):    
-    featurized_obs_shape = (366,)
+    featurized_obs_shape = [(366,), (372,)] # index in this array indicates the feature space version
 
-    def __init__(self, gym, visualize=False):
+    def __init__(self, gym, feature_version=0, visualize=False):
         self.gym = gym
         self.visualize = visualize
+        self.feature_version = feature_version
     
     def execute(self, action):
         if self.visualize:
@@ -18,13 +20,13 @@ class WrappedEnv(OpenAIGym):
         all_actions = self.gym.act(obs)
         all_actions.insert(self.gym.training_agent, actions)
         state, reward, terminal, _ = self.gym.step(all_actions)
-        agent_state = featurize(state[self.gym.training_agent])
+        agent_state = featurize(state[self.gym.training_agent], self.gym._game_type, self.feature_version)
         agent_reward = reward[self.gym.training_agent]
         return agent_state, terminal, agent_reward
     
     def reset(self):
         obs = self.gym.reset()
-        agent_obs = featurize(obs[3])
+        agent_obs = featurize(obs[3], self.gym._game_type, self.feature_version)
         return agent_obs
 def make_np_float(feature):
     return np.array(feature).astype(np.float32)
@@ -41,7 +43,7 @@ def convert_bombs(bomb_map):
             return ret
 
 
-def featurize(obs):
+def featurize(obs, game_type, version=0):
     # extract relevant features from the observation space
     # expand this using logic from SimpleAgent
 
@@ -58,13 +60,36 @@ def featurize(obs):
     else:
         teammate = -1
     teammate = make_np_float([teammate])
+    own_identity = obs['board'][int(position[0])][int(position[1])] 
 
     enemies = obs["enemies"]
     enemies = [e.value for e in enemies]
-    if len(enemies) < 3:
-        enemies = enemies + [-1]*(3 - len(enemies))
-    enemies = make_np_float(enemies)
 
-    # start with a simpler state space
-    #return np.concatenate((board, bomb_blast_strength, bomb_life, position, ammo, blast_strength, can_kick, teammate, enemies))
-    return np.concatenate((board, bomb_blast_strength, bomb_life, position, ammo))#, blast_strength, can_kick, teammate, enemies))
+    if version == 0:
+        if len(enemies) < 3:
+            enemies = enemies + [-1]*(3 - len(enemies))
+        enemies = make_np_float(enemies)
+        neural_net_input = np.concatenate((board, bomb_blast_strength, bomb_life, position, ammo))#, blast_strength, can_kick, teammate, enemies))
+    elif version == 1:
+        # give our own agent a set identity (15)
+        np.place(board, board == own_identity, 15)
+        # if we're in the team game, identify individual enemies
+        # in the ffa game, give all enemies a shared identity (for faster learning)
+        if game_type == constants.GameType.FFA:
+            # in FFA, label all enemies '-1'
+            for i in enemies:
+                np.place(board, board == i, -1)
+        elif game_type == constants.GameType.Team:
+            # in the team game, give enemies identities of '-1' and '-2', and give our teammate identity '14'
+            enemies.sort()
+            np.place(board, board == enemies[0], -1)
+            np.place(board, board == enemies[1], -2)
+            np.place(board, board == teammate, 14)
+
+        # placeholder
+        # replace this with logic from simpleagent to indicate whether directions are safe or not
+        safe_action_heuristics = [0] * 6
+
+        neural_net_input = np.concatenate((board, bomb_blast_strength, bomb_life, ammo, blast_strength, can_kick, safe_action_heuristics))
+
+    return neural_net_input
