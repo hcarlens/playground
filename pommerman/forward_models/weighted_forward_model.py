@@ -3,13 +3,13 @@ from collections import defaultdict
 
 import numpy as np
 
-from . import constants
-from . import characters
-from . import utility
-from . import forward_model
+from pommerman import constants
+from pommerman import characters
+from pommerman import utility
+from . import original_forward_model
 
 
-class WeightedForwardModel(forward_model.ForwardModel):
+class WeightedForwardModel(original_forward_model.OriginalForwardModel):
     @staticmethod
     def get_rewards(agents, game_type, step_count, max_steps):
         def any_lst_equal(lst, values):

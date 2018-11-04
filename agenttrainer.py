@@ -25,7 +25,7 @@ class TrainingConfig:
     def __init__(self, rl_agent=None, num_episodes=None, opponents=None, render=None,
             model_directory=None, discount=None, variable_noise=None, neural_net=None,
             batching_capacity=None, double_q_model=None, target_sync_frequency=None,
-            optimizer_type=None, optimizer_lr=None, max_episode_timesteps=None,
+            optimizer_type=None, optimizer_lr=None, max_episode_timesteps=None, forward_model=None,
             environment=None, feature_version=None):
         self.rl_agent = rl_agent if rl_agent else 'DQN'
         self.num_episodes = num_episodes if num_episodes else 10000
@@ -46,6 +46,7 @@ class TrainingConfig:
         self.max_episode_timesteps = max_episode_timesteps if max_episode_timesteps else 2000
         self.environment = environment.lower() if environment else 'ffa'
         self.feature_version = feature_version if feature_version else 0
+        self.forward_model = forward_model if forward_model else 'original'
 
 def createAgent(training_config, action_space_dim):
     """ Create an agent based on a set of configs """
@@ -76,16 +77,15 @@ def createAgent(training_config, action_space_dim):
             )
             )
 
-def initialiseEnvironment(environment_type):
+def initialiseEnvironment(environment_type, forward_model):
     config = None
     if environment_type.lower() == 'ffa':
         config = ffa_v0_fast_env()
     elif environment_type.lower() == 'team':
         config = team_competition_env()
-    env = Pomme(**config["env_kwargs"])
+    env = Pomme(**config["env_kwargs"], forward_model=forward_model)
     env.seed(0)
     return env, config
-
 
 class AgentTrainer:
     """
@@ -107,7 +107,7 @@ class AgentTrainer:
             yaml.dump(training_config, outfile, default_flow_style=False)
         print('Loading environment...')
 
-        env, config = initialiseEnvironment(training_config.environment)
+        env, config = initialiseEnvironment(training_config.environment, training_config.forward_model)
 
         self.agent = createAgent(training_config, env.action_space.n)
 

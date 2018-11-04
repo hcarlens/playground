@@ -25,42 +25,44 @@ def main():
         ]
     discounts = [0.9, 0.99, 1]
     variable_noises = [None, 1, 10]
+    forward_models = ['original', 'weighted']
     target_sync_frequencies = [1000, 10000]
-    feature_versions = [2]
+    feature_versions = [1]
     # also consider trying: different types of memory, batching capacities
 
     current_config_num = 0
 
-    # create loads of config files!
     for feature_version in feature_versions:
         for optimizer_type in optimizer_types:
             for optimizer_lr in optimizer_lrs:
                 for neural_net in neural_nets:
                     for discount in discounts:
                         for variable_noise in variable_noises:
-                            for rl_agent in rl_agents:
-                                if rl_agent == 'DQN':
-                                    for target_sync_frequency in target_sync_frequencies: # this only applies to DQNs
+                            for forward_model in forward_models:
+                                for rl_agent in rl_agents:
+                                    if rl_agent == 'DQN':
+                                        for target_sync_frequency in target_sync_frequencies: # this only applies to DQNs
+                                            # create config file
+                                            tc = TrainingConfig(rl_agent=rl_agent, optimizer_type=optimizer_type, optimizer_lr=optimizer_lr,
+                                            neural_net=neural_net, discount=discount, variable_noise=variable_noise, num_episodes=args.episodes,
+                                            opponents=args.opponents, target_sync_frequency=target_sync_frequency, feature_version=feature_version, 
+                                            forward_model=forward_model)
+
+                                            # write config file
+                                            with open(args.config_directory + '/config_' + str(current_config_num) + '.yml', 'w+') as outfile:
+                                                yaml.dump(tc, outfile, default_flow_style=False)
+                                                print('Config', current_config_num, 'done.')
+                                                current_config_num += 1
+                                    else:
                                         # create config file
                                         tc = TrainingConfig(rl_agent=rl_agent, optimizer_type=optimizer_type, optimizer_lr=optimizer_lr,
                                         neural_net=neural_net, discount=discount, variable_noise=variable_noise, num_episodes=args.episodes,
-                                        opponents=args.opponents, target_sync_frequency=target_sync_frequency)
-
+                                        opponents=args.opponents, feature_version=feature_version, forward_model=forward_model)
                                         # write config file
                                         with open(args.config_directory + '/config_' + str(current_config_num) + '.yml', 'w+') as outfile:
                                             yaml.dump(tc, outfile, default_flow_style=False)
                                             print('Config', current_config_num, 'done.')
                                             current_config_num += 1
-                                else:
-                                    # create config file
-                                    tc = TrainingConfig(rl_agent=rl_agent, optimizer_type=optimizer_type, optimizer_lr=optimizer_lr,
-                                    neural_net=neural_net, discount=discount, variable_noise=variable_noise, num_episodes=args.episodes,
-                                    opponents=args.opponents, feature_version=feature_version)
-                                    # write config file
-                                    with open(args.config_directory + '/config_' + str(current_config_num) + '.yml', 'w+') as outfile:
-                                        yaml.dump(tc, outfile, default_flow_style=False)
-                                        print('Config', current_config_num, 'done.')
-                                        current_config_num += 1
 
 
 

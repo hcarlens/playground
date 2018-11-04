@@ -59,22 +59,14 @@ def main():
     tensorboard_logger.configure("./logs")
 
     print('Running training loop for', args.episodes, 'episodes')
-    runner.run(episodes=args.episodes, testing=True, max_episode_timesteps=args.max_episode_timesteps)
+    runner.run(num_episodes=args.episodes, testing=True, max_episode_timesteps=args.max_episode_timesteps)
     print("Stats: ", runner.episode_rewards, runner.episode_timesteps)
 
-    episode_scores = []
-    for (i, reward) in enumerate(runner.episode_rewards):
-        if reward == -1:
-            episode_scores.append(0)
-        else:
-            episode_scores.append(reward)
-
-    fraction_won = sum(episode_scores) / args.episodes
-    percent_won = (fraction_won * 100)
+    average_score = sum(runner.episode_rewards) / args.episodes
 
     with open(args.outfile, 'a') as f:
-        line = ("{dir}\t{won}%\t{discount}\t{optimizer_lr}\t{optimizer_type}\t{double_q}\t{variable_noise}\t{net_layer_1}\t{net_layer_2}\t{runs}\n").format(
-            dir=args.agent_data_directory, won=percent_won,
+        line = ("{dir}\t{won}\t{discount}\t{optimizer_lr}\t{optimizer_type}\t{double_q}\t{variable_noise}\t{net_layer_1}\t{net_layer_2}\t{runs}\n").format(
+            dir=args.agent_data_directory, won=average_score,
             discount=training_config.discount,
             optimizer_lr=training_config.optimizer_lr,
             optimizer_type=training_config.optimizer_type,
