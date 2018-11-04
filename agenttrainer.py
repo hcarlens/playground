@@ -25,7 +25,7 @@ class TrainingConfig:
     def __init__(self, rl_agent=None, num_episodes=None, opponents=None, render=None,
             model_directory=None, discount=None, variable_noise=None, neural_net=None,
             batching_capacity=None, double_q_model=None, target_sync_frequency=None,
-            optimizer_type=None, optimizer_lr=None, max_episode_timesteps=None):
+            optimizer_type=None, optimizer_lr=None, max_episode_timesteps=None, forward_model=None):
         self.rl_agent = rl_agent if rl_agent else 'DQN'
         self.num_episodes = num_episodes if num_episodes else 10000
         self.opponents = opponents if opponents else 'SSS'
@@ -43,6 +43,7 @@ class TrainingConfig:
         self.optimizer_type = optimizer_type if optimizer_type else 'adam'
         self.optimizer_lr = optimizer_lr if optimizer_lr else 1e-3
         self.max_episode_timesteps = max_episode_timesteps if max_episode_timesteps else 2000
+        self.forward_model = forward_model if forward_model else 'original'
 
 def createAgent(training_config, action_space_dim):
     """ Create an agent based on a set of configs """
@@ -73,10 +74,10 @@ def createAgent(training_config, action_space_dim):
             )
             )
 
-def initialiseEnvironment(environment_type):
+def initialiseEnvironment(environment_type, extra_configs: TrainingConfig):
     if environment_type == 'ffa_v0':
         config = ffa_v0_fast_env()
-        env = Pomme(**config["env_kwargs"])
+        env = Pomme(**config["env_kwargs"], forward_model=extra_configs.forward_model)
         env.seed(0)
         return env, config
 
@@ -101,7 +102,7 @@ class AgentTrainer:
             yaml.dump(training_config, outfile, default_flow_style=False)
         print('Loading environment...')
 
-        env, config = initialiseEnvironment('ffa_v0')
+        env, config = initialiseEnvironment('ffa_v0', training_config)
 
         self.agent = createAgent(training_config,env.action_space.n)
 

@@ -60,6 +60,8 @@ class Pomme(gym.Env):
             'weighted':  WeightedForwardModel(),
             }[forward_model]
 
+        print('Using {0} model'.format(forward_model))
+
         # This can be changed through set_render_mode
         # or from the cli tool using '--render_mode=MODE_TYPE'
         self._mode = 'human'
