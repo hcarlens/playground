@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+set -e
+
+export PATH=/home/ubuntu/.local/bin:$PATH
+
+if [ $# -ne 2 ]; then
+  echo "Usage: evaluate_agents <path_to_data_dir> <path_to_output_file>"
+  exit 1
+fi
+
+pushd "$(dirname "$0")" > /dev/null; pushd .. > /dev/null
+  source venv/bin/activate
+    #NUM_PROCESSORS="$(grep -c ^processor /proc/cpuinfo)"
+    NUM_PROCESSORS=1
+
+    touch "$2"
+
+    set +e
+    set -x
+    ls -A | xargs -P "$NUM_PROCESSORS" -I% python3 \
+      agentevaluator.py --agent_data_directory=% --outfile="$2"
+popd; popd
