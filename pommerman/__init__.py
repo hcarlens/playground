@@ -4,9 +4,9 @@ import inspect
 from . import agents
 from . import configs
 from . import constants
-from . import forward_model
 from . import helpers
 from . import utility
+from pommerman.forward_models.original_forward_model import OriginalForwardModel
 from . import network
 
 gym.logger.set_level(40)
