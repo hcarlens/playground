@@ -56,6 +56,7 @@ def main():
 
     wrapped_env = WrappedEnv(env, training_config.render)
     runner = Runner(agent, wrapped_env)
+    tensorboard_logger.configure("./logs")
 
     print('Running training loop for', args.episodes, 'episodes')
     runner.run(episodes=args.episodes, testing=True, max_episode_timesteps=args.max_episode_timesteps)
@@ -72,7 +73,7 @@ def main():
     percent_won = (fraction_won * 100)
 
     with open(args.outfile, 'a') as f:
-        line = ("{dir}\t{won}%\t{discount}\t{optimizer_lr}\t{optimizer_type}\t{double_q}\t{variable_noise}\t{net_layer_1}\t{net_layer_2}\n").format(
+        line = ("{dir}\t{won}%\t{discount}\t{optimizer_lr}\t{optimizer_type}\t{double_q}\t{variable_noise}\t{net_layer_1}\t{net_layer_2}\t{runs}\n").format(
             dir=args.agent_data_directory, won=percent_won,
             discount=training_config.discount,
             optimizer_lr=training_config.optimizer_lr,
@@ -80,7 +81,8 @@ def main():
             double_q=training_config.double_q_model,
             variable_noise=training_config.variable_noise,
             net_layer_1=training_config.neural_net[0]["type"]+str(training_config.neural_net[0]["size"]),
-            net_layer_2=training_config.neural_net[1]["type"]+str(training_config.neural_net[1]["size"])
+            net_layer_2=training_config.neural_net[1]["type"]+str(training_config.neural_net[1]["size"]),
+            runs=args.episodes
         )
         f.write(line)
 
