@@ -8,10 +8,10 @@ requests~=2.18
 jsonmerge~=1.5.1
 astroid>=2
 isort~=4.3.4
-tensorflow~=1.11.0
+# tensorflow~=1.11.0
 pyyaml
 tensorboard_logger
-git+ssh://git@github.com/hcarlens/tensorforce.git@working#egg=tensorforce
+# git+ssh://git@github.com/hcarlens/tensorforce.git@working#egg=tensorforce
 pylint>=2
 websockets~=6.0
 websocket-client~=0.53.0
