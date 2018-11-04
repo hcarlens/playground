@@ -12,8 +12,8 @@ fi
 pushd "$(dirname "$0")" > /dev/null; pushd .. > /dev/null
   source venv/bin/activate
     touch "$2"
-    mkdir "in-progress"
-    mkdir "done"
+    mkdir -p "in-progress"
+    mkdir -p "done"
 
     set +e
     set -x
