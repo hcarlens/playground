@@ -14,9 +14,9 @@ import gym
 
 from .. import characters
 from .. import constants
-from .. import forward_model
 from .. import graphics
 from .. import utility
+from pommerman.forward_models.original_forward_model import OriginalForwardModel
 
 
 class Pomme(gym.Env):
@@ -52,7 +52,7 @@ class Pomme(gym.Env):
         self._env = env
 
         self.training_agent = None
-        self.model = forward_model.ForwardModel()
+        self.model = OriginalForwardModel()
 
         # This can be changed through set_render_mode
         # or from the cli tool using '--render_mode=MODE_TYPE'

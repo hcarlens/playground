@@ -3,12 +3,12 @@ from collections import defaultdict
 
 import numpy as np
 
-from . import constants
-from . import characters
-from . import utility
+from pommerman import constants
+from pommerman import characters
+from pommerman import utility
 
 
-class ForwardModel(object):
+class OriginalForwardModel(object):
     """Class for helping with the [forward] modeling of the game state."""
 
     def run(self,
