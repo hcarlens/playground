@@ -53,6 +53,8 @@ class OriginalForwardModel(object):
           done: Whether we completed the game in these steps.
           info: The result of the game if it's completed.
         """
+        self.training_agent= training_agent
+        
         steps = []
         for _ in num_times:
             obs = self.get_observations(
