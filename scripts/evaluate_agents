@@ -17,6 +17,6 @@ pushd "$(dirname "$0")" > /dev/null; pushd .. > /dev/null
 
     set +e
     set -x
-    ls -d "$1"*/ | parallel --progress "cp -r {} in-progress/; python3 agentevaluator.py --agent_data_directory=in-progress/{} --outfile=$2 --episodes=$3;" \
-      'rm -rf in-progress/{}'
+    ls -d "$1"*/ | parallel --progress \
+      "cp -r {} in-progress/; python3 agentevaluator.py --agent_data_directory=in-progress/{} --outfile=$2 --episodes=$3; rm -rf in-progress/{}"
 popd; popd
