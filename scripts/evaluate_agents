@@ -4,8 +4,8 @@ set -e
 
 export PATH=/home/ubuntu/.local/bin:$PATH
 
-if [ $# -ne 2 ]; then
-  echo "Usage: evaluate_agents <path_to_data_dir> <path_to_output_file>"
+if [ $# -ne 3 ]; then
+  echo "Usage: evaluate_agents <path_to_data_dir> <path_to_output_file> <num_episodes>"
   exit 1
 fi
 
@@ -18,6 +18,6 @@ pushd "$(dirname "$0")" > /dev/null; pushd .. > /dev/null
 
     set +e
     set -x
-    ls -A | xargs -P "$NUM_PROCESSORS" -I% python3 \
-      agentevaluator.py --agent_data_directory=% --outfile="$2"
+    ls -d "$1"*/ | xargs -P "$NUM_PROCESSORS" -I% python3 \
+      agentevaluator.py --agent_data_directory=% --outfile="$2" --episodes="$3"
 popd; popd
