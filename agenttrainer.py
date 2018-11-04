@@ -5,7 +5,7 @@ import datetime
 import yaml
 
 from pommerman.agents import SimpleAgent, RandomAgent, BaseAgent
-from pommerman.configs import ffa_v0_fast_env
+from pommerman.configs import ffa_v0_fast_env, team_competition_env
 from pommerman.envs.v0 import Pomme
 
 from tensorforce.agents import PPOAgent, DQNAgent
@@ -25,7 +25,8 @@ class TrainingConfig:
     def __init__(self, rl_agent=None, num_episodes=None, opponents=None, render=None,
             model_directory=None, discount=None, variable_noise=None, neural_net=None,
             batching_capacity=None, double_q_model=None, target_sync_frequency=None,
-            optimizer_type=None, optimizer_lr=None, max_episode_timesteps=None):
+            optimizer_type=None, optimizer_lr=None, max_episode_timesteps=None,
+            environment=None):
         self.rl_agent = rl_agent if rl_agent else 'DQN'
         self.num_episodes = num_episodes if num_episodes else 10000
         self.opponents = opponents if opponents else 'SSS'
@@ -43,6 +44,7 @@ class TrainingConfig:
         self.optimizer_type = optimizer_type if optimizer_type else 'adam'
         self.optimizer_lr = optimizer_lr if optimizer_lr else 1e-3
         self.max_episode_timesteps = max_episode_timesteps if max_episode_timesteps else 2000
+        self.environment = environment if environment else 'FFA'
 
 def createAgent(training_config, action_space_dim):
     """ Create an agent based on a set of configs """
@@ -74,11 +76,14 @@ def createAgent(training_config, action_space_dim):
             )
 
 def initialiseEnvironment(environment_type):
-    if environment_type == 'ffa_v0':
+    config = None
+    if environment_type.lower() == 'ffa':
         config = ffa_v0_fast_env()
-        env = Pomme(**config["env_kwargs"])
-        env.seed(0)
-        return env, config
+    elif environment_type.lower() == 'team':
+        config = team_competition_env()
+    env = Pomme(**config["env_kwargs"])
+    env.seed(0)
+    return env, config
 
 
 class AgentTrainer:
@@ -101,9 +106,9 @@ class AgentTrainer:
             yaml.dump(training_config, outfile, default_flow_style=False)
         print('Loading environment...')
 
-        env, config = initialiseEnvironment('ffa_v0')
+        env, config = initialiseEnvironment(training_config.environment)
 
-        self.agent = createAgent(training_config,env.action_space.n)
+        self.agent = createAgent(training_config, env.action_space.n)
 
         print('Instantiating agent...')
 
@@ -154,6 +159,8 @@ def main():
     parser = argparse.ArgumentParser(description="Agent Training Flags.")
     parser.add_argument("--model_directory", default=None, help="Directory from which to load an existing model. ")
     parser.add_argument(
+        "--environment", default=None, help="FFA or Team. (not case sensitive)")
+    parser.add_argument(
         "--config_file", default=None, help="Yaml config file from which to load training_config settings")
     parser.add_argument(
         "--episodes", type=int, default=None, help="Integer. Number of episodes to run.")
@@ -175,7 +182,7 @@ def main():
             training_config = yaml.load(f)
     else:
         training_config = TrainingConfig(rl_agent=args.agent, num_episodes=args.episodes, opponents=args.opponents,
-            render=args.render, model_directory=args.model_directory, discount=args.discount, variable_noise=args.variable_noise)
+            render=args.render, model_directory=args.model_directory, discount=args.discount, variable_noise=args.variable_noise, environment=args.environment)
 
     agent_trainer = AgentTrainer(training_config)
     agent_trainer.run()
