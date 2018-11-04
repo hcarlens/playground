@@ -12,9 +12,12 @@ fi
 pushd "$(dirname "$0")" > /dev/null; pushd .. > /dev/null
   source venv/bin/activate
     touch "$2"
+    mkdir "in-progress"
+    mkdir "done"
 
     set +e
     set -x
-    ls -d "$1"*/ | parallel --progress python3 \
-      agentevaluator.py --agent_data_directory={} --outfile="$2" --episodes="$3"
+    ls -d "$1"*/ | parallel --progress 'mv {} in-progress; python3 ' \
+      'agentevaluator.py --agent_data_directory=in-progress/{} --outfile="$2" --episodes="$3";' \
+      'mv in-progress/{} done/{}'
 popd; popd
