@@ -11,9 +11,6 @@ fi
 
 pushd "$(dirname "$0")" > /dev/null; pushd .. > /dev/null
   source venv/bin/activate
-    NUM_PROCESSORS="$(grep -c ^processor /proc/cpuinfo)"
-    #NUM_PROCESSORS=1
-
     touch "$2"
 
     set +e
