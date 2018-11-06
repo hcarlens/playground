@@ -1,6 +1,4 @@
 import argparse
-import os
-import datetime
 import yaml
 
 from agenttrainer import TrainingConfig
@@ -17,16 +15,18 @@ def main():
     args = parser.parse_args()
 
     rl_agents = ['PPO', 'DQN']
-    optimizer_types = ['adam', 'rmsprop']
-    optimizer_lrs = [1e-3, 1e-4, 1e-5]
+    optimizer_types = ['rmsprop'] # from DQN paper
+    optimizer_lrs = [0.00025] # from DQN paper
     neural_nets = [
-        [dict(type='dense', size=64), dict(type='dense', size=64)],
-        [dict(type='dense', size=20), dict(type='dense', size=20)]
+        [dict(type='dense', size=200), dict(type='dense', size=200)],
+        [dict(type='dense', size=200, l2_regularization=0.001), dict(type='dense', size=200, l2_regularization=0.001)], # l2 regularisation from https://github.com/lefnire/tforce_btc_trader/blob/master/hypersearch.py
+        [dict(type='dense', size=200, l2_regularization=0.001), dict(type='dropout', rate=0.1),dict(type='dense', size=200, l2_regularization=0.001), dict(type='dropout', rate=0.1)] 
         ]
-    discounts = [0.9, 0.99, 1]
-    variable_noises = [None, 1, 10]
-    forward_models = ['original', 'weighted']
-    target_sync_frequencies = [1000, 10000]
+    discounts = [0.99] # from DQN paper
+    variable_noises = [None]
+    forward_models = ['original', 'firsttodie']
+    target_sync_frequencies = [10000] # from DQN paper
+    batching_capacities = [32, 1000] # 32 from DQN paper
     feature_versions = [1]
     # also consider trying: different types of memory, batching capacities
 
