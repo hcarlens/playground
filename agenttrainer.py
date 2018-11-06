@@ -26,7 +26,7 @@ class TrainingConfig:
             model_directory=None, discount=None, variable_noise=None, neural_net=None,
             batching_capacity=None, double_q_model=None, target_sync_frequency=None,
             optimizer_type=None, optimizer_lr=None, max_episode_timesteps=None, forward_model=None,
-            environment=None, feature_version=None):
+            environment=None, feature_version=None, actions_exploration=None, memory=None):
         self.rl_agent = rl_agent if rl_agent else 'DQN'
         self.num_episodes = num_episodes if num_episodes else 10000
         self.opponents = opponents if opponents else 'SSS'
@@ -34,6 +34,8 @@ class TrainingConfig:
         self.discount = discount if discount else 0.99
         self.variable_noise = variable_noise if variable_noise else None
         self.batching_capacity = batching_capacity if batching_capacity else 32
+        self.actions_exploration = actions_exploration if actions_exploration else None
+        self.memory = memory if memory else None
         self.double_q_model = double_q_model if double_q_model else True
         self.target_sync_frequency = target_sync_frequency if target_sync_frequency  else 10000
         self.neural_net = neural_net if neural_net else [
@@ -56,6 +58,8 @@ def createAgent(training_config, action_space_dim):
             actions=dict(type='int', num_actions=action_space_dim),
             network=training_config.neural_net,
             batching_capacity=training_config.batching_capacity,
+            actions_exploration=training_config.actions_exploration,
+            memory=training_config.memory,
             step_optimizer=dict(
                 type=training_config.optimizer_type,
                 learning_rate=training_config.optimizer_lr
@@ -68,6 +72,8 @@ def createAgent(training_config, action_space_dim):
             actions=dict(type='int', num_actions=action_space_dim),
             network=training_config.neural_net,
             batching_capacity=training_config.batching_capacity,
+            actions_exploration=training_config.actions_exploration,
+            memory=training_config.memory,
             double_q_model=training_config.double_q_model,
             target_sync_frequency=training_config.target_sync_frequency,
             discount=training_config.discount,
