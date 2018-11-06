@@ -33,7 +33,7 @@ class TrainingConfig:
         self.render = render if render else False
         self.discount = discount if discount else 0.99
         self.variable_noise = variable_noise if variable_noise else None
-        self.batching_capacity = batching_capacity if batching_capacity else 1000
+        self.batching_capacity = batching_capacity if batching_capacity else 32
         self.double_q_model = double_q_model if double_q_model else True
         self.target_sync_frequency = target_sync_frequency if target_sync_frequency  else 10000
         self.neural_net = neural_net if neural_net else [
