@@ -2,7 +2,7 @@ import sys
 from setuptools import setup, find_packages
 
 CURRENT_PYTHON = sys.version_info[:2]
-MIN_PYTHON = (3, 6)
+MIN_PYTHON = (3, 5)
 
 if CURRENT_PYTHON < MIN_PYTHON:
     sys.stderr.write("""
