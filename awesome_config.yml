@@ -1,0 +1,32 @@
+!!python/object:agenttrainer.TrainingConfig
+actions_exploration: null
+batching_capacity: 32
+discount: 0.99
+double_q_model: true
+environment: ffa
+feature_version: 1
+forward_model: original
+max_episode_timesteps: 2000
+memory:
+  type: prioritized_replay
+  include_next_states: true
+  capacity: 1000
+actions_exploration:
+  type: epsilon_decay
+  initial_epsilon: 1.0
+  final_epsilon: 0.0100005
+  timesteps: 50000
+model_directory: false
+neural_net:
+- size: 200
+  type: dense
+- size: 200
+  type: dense
+num_episodes: 3000
+opponents: SSS
+optimizer_lr: 0.00025
+optimizer_type: rmsprop
+render: false
+rl_agent: DQN
+target_sync_frequency: 10000
+variable_noise: null

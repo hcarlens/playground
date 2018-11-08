@@ -185,6 +185,8 @@ def main():
         "--variable_noise", default=None, help="Standard deviation of noise to add to parameter space (see NoisyNets paper).")
     parser.add_argument(
         "--memory", default=None, help="Memory spec. Expects a dictionary with 'type' (options 'replay', 'prioritized_replay', 'latest'), 'include_next_states' and 'capacity' keys. Defaults to Tensorforce default.")
+    parser.add_argument(
+        "--actions_exploration", default=None, help="How the agent should explore the action space. Dict passed directly to Tensorforce. For epsilon decay/anneal, should include 'type' ('epsilon_decay' or 'epsilon_anneal'), 'initial_epsilon', 'final_epsilon' and 'timesteps.'")
     args = parser.parse_args()
 
     # create an object to define this training run. Args loaded from CLI, but can also be loaded from config.
@@ -196,7 +198,8 @@ def main():
     else:
         training_config = TrainingConfig(rl_agent=args.agent, num_episodes=args.episodes, opponents=args.opponents,
             render=args.render, model_directory=args.model_directory, discount=args.discount, 
-            variable_noise=args.variable_noise, environment=args.environment, feature_version=args.feature_version)
+            variable_noise=args.variable_noise, environment=args.environment, feature_version=args.feature_version,
+            memory=args.memory, actions_exploration=args.actions_exploration)
 
     agent_trainer = AgentTrainer(training_config)
     agent_trainer.run()
