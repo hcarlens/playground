@@ -65,26 +65,36 @@ def featurize(obs, game_type, version=0):
     enemies = obs["enemies"]
     enemies = [e.value for e in enemies]
 
+    # re-map all power-ups to the same value, to simplify things for now
+    np.place(board, np.isin(board, [7, 8]), 6)
+
     if version == 0:
         if len(enemies) < 3:
             enemies = enemies + [-1]*(3 - len(enemies))
         enemies = make_np_float(enemies)
         neural_net_input = np.concatenate((board, bomb_blast_strength, bomb_life, position, ammo))#, blast_strength, can_kick, teammate, enemies))
     elif version == 1:
-        # give our own agent a set identity (15)
-        np.place(board, board == own_identity, 15)
+        # give our own agent a set identity
+        np.place(board, board == own_identity, 7)
         # if we're in the team game, identify individual enemies
         # in the ffa game, give all enemies a shared identity (for faster learning)
         if game_type == constants.GameType.FFA:
-            # in FFA, label all enemies '-1'
+            # in FFA, label all enemies '9'
             for i in enemies:
-                np.place(board, board == i, -1)
+                np.place(board, board == i, 9)
         elif game_type == constants.GameType.Team:
             # in the team game, give enemies identities of '-1' and '-2', and give our teammate identity '14'
             enemies.sort()
             np.place(board, board == enemies[0], -1)
             np.place(board, board == enemies[1], -2)
             np.place(board, board == teammate, 14)
+
+        # normalise the inputs
+        board = board/10
+        ammo = ammo/10
+        blast_strength = blast_strength/10
+        bomb_blast_strength = bomb_blast_strength/10
+        bomb_life = bomb_life/10
 
         # placeholder
         # replace this with logic from simpleagent to indicate whether directions are safe or not
@@ -93,3 +103,4 @@ def featurize(obs, game_type, version=0):
         neural_net_input = np.concatenate((board, bomb_blast_strength, bomb_life, ammo, blast_strength, can_kick, safe_action_heuristics))
 
     return neural_net_input
+    
