@@ -3,7 +3,7 @@ import numpy as np
 from pommerman import constants
 
 class WrappedEnv(OpenAIGym):    
-    featurized_obs_shape = [(366,), (372,)] # index in this array indicates the feature space version
+    featurized_obs_shape = [(366,), (372,), (134,)] # index in this array indicates the feature space version
 
     def __init__(self, gym, feature_version=0, visualize=False):
         self.gym = gym
@@ -73,7 +73,7 @@ def featurize(obs, game_type, version=0):
             enemies = enemies + [-1]*(3 - len(enemies))
         enemies = make_np_float(enemies)
         neural_net_input = np.concatenate((board, bomb_blast_strength, bomb_life, position, ammo))#, blast_strength, can_kick, teammate, enemies))
-    elif version == 1:
+    else:
         # give our own agent a set identity
         np.place(board, board == own_identity, 7)
         # if we're in the team game, identify individual enemies
@@ -100,7 +100,10 @@ def featurize(obs, game_type, version=0):
         # replace this with logic from simpleagent to indicate whether directions are safe or not
         safe_action_heuristics = [0] * 6
 
-        neural_net_input = np.concatenate((board, bomb_blast_strength, bomb_life, ammo, blast_strength, can_kick, safe_action_heuristics))
+        if version == 1:
+            neural_net_input = np.concatenate((board, bomb_blast_strength, bomb_life, ammo, blast_strength, can_kick, safe_action_heuristics))
+        elif version == 2:
+            neural_net_input = np.concatenate((board, np.array(bomb_blast_strength.min(), ndmin=1), np.array(bomb_blast_strength.max(), ndmin=1), np.array(bomb_life.min(), ndmin=1), np.array(bomb_life.max(), ndmin=1), ammo, blast_strength, can_kick, safe_action_heuristics))
 
     return neural_net_input
     
