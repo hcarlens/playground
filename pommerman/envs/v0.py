@@ -39,7 +39,7 @@ class Pomme(gym.Env):
                  max_steps=1000,
                  is_partially_observable=False,
                  env=None,
-                 forward_model='original',
+                 forward_model='firsttodie',
                  **kwargs):
         self._render_fps = render_fps
         self._intended_actions = []

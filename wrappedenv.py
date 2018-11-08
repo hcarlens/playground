@@ -1,6 +1,7 @@
 from tensorforce.contrib.openai_gym import OpenAIGym
 import numpy as np
 from pommerman import constants
+from pommerman.agents import SimpleAgent
 
 class WrappedEnv(OpenAIGym):    
     featurized_obs_shape = [(366,), (372,), (134,)] # index in this array indicates the feature space version
@@ -9,6 +10,7 @@ class WrappedEnv(OpenAIGym):
         self.gym = gym
         self.visualize = visualize
         self.feature_version = feature_version
+        self.simple_agent = SimpleAgent()
     
     def execute(self, action):
         if self.visualize:
@@ -20,13 +22,13 @@ class WrappedEnv(OpenAIGym):
         all_actions = self.gym.act(obs)
         all_actions.insert(self.gym.training_agent, actions)
         state, reward, terminal, _ = self.gym.step(all_actions)
-        agent_state = featurize(state[self.gym.training_agent], self.gym._game_type, self.feature_version)
+        agent_state = featurize(state[self.gym.training_agent], self.gym._game_type, self.simple_agent, self.gym.action_space, self.feature_version)
         agent_reward = reward[self.gym.training_agent]
         return agent_state, terminal, agent_reward
     
     def reset(self):
         obs = self.gym.reset()
-        agent_obs = featurize(obs[3], self.gym._game_type, self.feature_version)
+        agent_obs = featurize(obs[3], self.gym._game_type, self.simple_agent, self.gym.action_space, self.feature_version)
         return agent_obs
 def make_np_float(feature):
     return np.array(feature).astype(np.float32)
@@ -43,7 +45,7 @@ def convert_bombs(bomb_map):
             return ret
 
 
-def featurize(obs, game_type, version=0):
+def featurize(obs, game_type, simple_agent, action_space, version=0):
     # extract relevant features from the observation space
     # expand this using logic from SimpleAgent
 
@@ -99,6 +101,8 @@ def featurize(obs, game_type, version=0):
         # placeholder
         # replace this with logic from simpleagent to indicate whether directions are safe or not
         safe_action_heuristics = [0] * 6
+        action = simple_agent.act(obs, action_space)
+        safe_action_heuristics[action] = 1
 
         if version == 1:
             neural_net_input = np.concatenate((board, bomb_blast_strength, bomb_life, ammo, blast_strength, can_kick, safe_action_heuristics))
