@@ -18,7 +18,7 @@ def main():
     optimizer_types = ['rmsprop'] # from DQN paper
     optimizer_lrs = [0.00025] # from DQN paper
     neural_nets = [
-        [dict(type='dense', size=200, l2_regularization=0.001), dict(type='dense', size=200, l2_regularization=0.001)], # l2 regularisation from https://github.com/lefnire/tforce_btc_trader/blob/master/hypersearch.py
+        [dict(type='dense', size=200), dict(type='dense', size=200)], # l2 regularisation from https://github.com/lefnire/tforce_btc_trader/blob/master/hypersearch.py
         [dict(type='dense', size=200, l2_regularization=0.001), dict(type='dropout', rate=0.1), dict(type='dense', size=200, l2_regularization=0.001), dict(type='dropout', rate=0.1), dict(type='dense', size=200, l2_regularization=0.001), dict(type='dropout', rate=0.1)] 
         ]
     discounts = [0.99] # from DQN paper
