@@ -8,8 +8,8 @@ feature_version: 1
 forward_model: original
 max_episode_timesteps: 2000
 memory:
-  type: prioritized_replay
-  include_next_states: true
+  type: prioritized_replay # must be 'latest' for PPO
+  include_next_states: false # must be true for DQN; must be false for PPO
   capacity: 1000
 actions_exploration:
   type: epsilon_decay
@@ -27,6 +27,6 @@ opponents: SSS
 optimizer_lr: 0.00025
 optimizer_type: rmsprop
 render: false
-rl_agent: DQN
+rl_agent: PPO
 target_sync_frequency: 10000
 variable_noise: null
