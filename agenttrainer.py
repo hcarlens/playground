@@ -183,6 +183,8 @@ def main():
         "--discount", default=None, help="Gamma parameter, defining how much to value future timesteps vs current timesteps.")
     parser.add_argument(
         "--variable_noise", default=None, help="Standard deviation of noise to add to parameter space (see NoisyNets paper).")
+    parser.add_argument(
+        "--memory", default=None, help="Memory spec. Expects a dictionary with 'type' (options 'replay', 'prioritized_replay', 'latest'), 'include_next_states' and 'capacity' keys. Defaults to Tensorforce default.")
     args = parser.parse_args()
 
     # create an object to define this training run. Args loaded from CLI, but can also be loaded from config.
