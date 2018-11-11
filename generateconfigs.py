@@ -18,18 +18,38 @@ def main():
     optimizer_types = ['rmsprop'] # from DQN paper
     optimizer_lrs = [0.00025] # from DQN paper
     neural_nets = [
-        [dict(type='dense', size=200), dict(type='dense', size=200)], # l2 regularisation from https://github.com/lefnire/tforce_btc_trader/blob/master/hypersearch.py
-        [dict(type='dense', size=200, l2_regularization=0.001), dict(type='dropout', rate=0.1), dict(type='dense', size=200, l2_regularization=0.001), dict(type='dropout', rate=0.1), dict(type='dense', size=200, l2_regularization=0.001), dict(type='dropout', rate=0.1)] 
+        [
+                dict(type='conv2d', size=64, window=3, stride=2),
+                dict(type='flatten'),
+                dict(type='dense', size=512)
+        [
+                dict(type='conv2d', size=36, window=5, stride=1),
+                dict(type='conv2d', size=81, window=3, stride=1),
+                dict(type='flatten'),
+                dict(type='dense', size=512)
+            ],
+        [
+                dict(type='conv2d', size=81, window=3, stride=1),
+                dict(type='flatten'),
+                dict(type='dense', size=512)
+        ],
+        [
+                dict(type='conv2d', size=32, window=8, stride=4),
+                dict(type='conv2d', size=64, window=4, stride=2),
+                dict(type='conv2d', size=32, window=3, stride=1),
+                dict(type='flatten'),
+                dict(type='dense', size=512)
+        ]
         ]
     discounts = [0.99] # from DQN paper
     variable_noises = [None]
     forward_models = ['original']
-    dqnmemories = [{'type':'replay', 'include_next_states': True, 'capacity': 100000},{'type':'prioritized_replay', 'include_next_states':True, 'capacity':10000}]
-    ppomemories = [{'type':'prioritized_replay', 'include_next_states': False, 'capacity':100000}, {'type':'latest', 'include_next_states':False, 'capacity':100000}]
-    actions_explorations = [None, {'type':'epsilon_decay', 'initial_epsilon':1.0, 'final_epsilon':0.01, 'timesteps':50000}]
+    dqnmemories = [{'type':'replay', 'include_next_states': True, 'capacity':1e6}]
+    ppomemories = [{'type':'replay', 'include_next_states': False, 'capacity':1e6}]
+    actions_explorations = [{'type':'epsilon_decay', 'initial_epsilon':1.0, 'final_epsilon':0.01, 'timesteps':1e5}]
     target_sync_frequencies = [10000] # from DQN paper
     batching_capacities = [32] # 32 from DQN paper
-    feature_versions = [2]
+    feature_versions = [3]
     # also consider trying: different types of memory, batching capacities
 
     current_config_num = 0
