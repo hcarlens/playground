@@ -1,11 +1,9 @@
 # Make sure you have tensorforce installed: pip install tensorforce
 import argparse
-import os
 import yaml
-from agenttrainer import AgentTrainer, TrainingConfig, createAgent, initialiseEnvironment
 from pommerman.agents import SimpleAgent, RandomAgent, BaseAgent
+from agenttrainer import initialiseEnvironment, createAgent
 
-from tensorforce.agents import PPOAgent, DQNAgent
 from tensorforce.execution import Runner
 import tensorboard_logger
 from wrappedenv import WrappedEnv
@@ -24,7 +22,7 @@ def main():
     parser.add_argument(
         "--max_episode_timesteps", type=int, default=100, help="Integer. Max number of timesteps per episode.")
     parser.add_argument(
-        "--render", default=None, action='store_true', help="Whether to render or not. Defaults to False.")
+        "--render", default=False, action='store_true', help="Whether to render or not. Defaults to False.")
     parser.add_argument(
         "--opponents", default="SSS", help="Which agents to train against, out of simple and random. E.g. SSS = three simple agents, SRR = 1 simple and 2 random. ")
     args = parser.parse_args()
@@ -34,7 +32,7 @@ def main():
         training_config = yaml.load(f)
 
     # initialise the environment and agent
-    env, config = initialiseEnvironment('ffa_v0')
+    env, config = initialiseEnvironment('ffa', training_config.forward_model)
     agent = createAgent(training_config, env.action_space.n)
     agent.restore_model(args.agent_data_directory)
 
@@ -54,7 +52,7 @@ def main():
     env.set_training_agent(agents[-1].agent_id)
     env.set_init_game_state(None)
 
-    wrapped_env = WrappedEnv(env, training_config.render)
+    wrapped_env = WrappedEnv(gym=env, feature_version=training_config.feature_version, visualize=args.render)
     runner = Runner(agent, wrapped_env)
     tensorboard_logger.configure("./logs")
 
