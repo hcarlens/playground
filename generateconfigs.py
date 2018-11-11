@@ -46,7 +46,7 @@ def main():
     actions_explorations = [{'type':'epsilon_decay', 'initial_epsilon':1.0, 'final_epsilon':0.01, 'timesteps':1e5}]
     ppomemories = [{'type':'replay', 'include_next_states': False, 'capacity':1e6}]
     dqnmemories = [{'type':'replay', 'include_next_states': True, 'capacity':1e6}]
-    forward_models = ['firsttodie', 'simple']
+    forward_models = ['simple','firsttodie']
     target_sync_frequencies = [10000] # from DQN paper
     batching_capacities = [32] # 32 from DQN paper
     use_simple_rewards = [True, False]
