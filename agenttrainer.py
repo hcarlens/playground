@@ -51,9 +51,17 @@ class TrainingConfig:
         self.forward_model = forward_model if forward_model else 'original'
         self.use_simple_rewards = use_simple_rewards
 
-def createAgent(training_config, action_space_dim):
+def createAgent(training_config, action_space_dim, data_directory='./tensorboard'):
+    summarizer = None
+    summarizer_labels = ['graph', 'variables', 'losses']
+
     """ Create an agent based on a set of configs """
     if training_config.rl_agent == 'PPO':
+        if data_directory:
+            summarizer = dict(directory=data_directory,
+                        steps=5,
+                        labels=summarizer_labels
+                    )
         # Create a Proximal Policy Optimization agent
         return PPOAgent(states=dict(type='float', shape=WrappedEnv.featurized_obs_shape[training_config.feature_version]),
             actions=dict(type='int', num_actions=action_space_dim),
@@ -65,9 +73,16 @@ def createAgent(training_config, action_space_dim):
                 type=training_config.optimizer_type,
                 learning_rate=training_config.optimizer_lr
             ),
-            discount=training_config.discount
+            discount=training_config.discount,
+            summarizer=summarizer
         )
     elif training_config.rl_agent == 'DQN':
+        if data_directory:
+            summarizer = dict(directory=data_directory,
+                        steps=50,
+                        labels=summarizer_labels
+                    )
+
         # Create a DQN agent
         return DQNAgent(states=dict(type='float', shape=WrappedEnv.featurized_obs_shape[training_config.feature_version]),
             actions=dict(type='int', num_actions=action_space_dim),
@@ -81,7 +96,8 @@ def createAgent(training_config, action_space_dim):
             optimizer=dict(
                 type=training_config.optimizer_type,
                 learning_rate=training_config.optimizer_lr
-            )
+            ),
+            summarizer=summarizer
             )
 
 def initialiseEnvironment(environment_type, forward_model):
