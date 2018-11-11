@@ -9,7 +9,7 @@ def main():
     parser.add_argument(
         "--config_directory", default='configs', help="Location to store generated config files")
     parser.add_argument(
-        "--episodes", type=int, default=200000, help="Integer. Number of episodes to run.")
+        "--episodes", type=int, default=100000, help="Integer. Number of episodes to run.")
     parser.add_argument(
         "--opponents", default=None, help="Which agents to train against, out of simple and random. E.g. SSS = three simple agents, SRR = 1 simple and 2 random. ")
     args = parser.parse_args()
@@ -23,7 +23,7 @@ def main():
         ]
     discounts = [0.99] # from DQN paper
     variable_noises = [None]
-    forward_models = ['firsttodie']
+    forward_models = ['original']
     dqnmemories = [{'type':'replay', 'include_next_states': True, 'capacity': 100000},{'type':'prioritized_replay', 'include_next_states':True, 'capacity':10000}]
     ppomemories = [{'type':'prioritized_replay', 'include_next_states': False, 'capacity':100000}, {'type':'latest', 'include_next_states':False, 'capacity':100000}]
     actions_explorations = [None, {'type':'epsilon_decay', 'initial_epsilon':1.0, 'final_epsilon':0.01, 'timesteps':50000}]
