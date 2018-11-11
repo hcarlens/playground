@@ -4,7 +4,7 @@ from pommerman import constants
 from pommerman.agents import SimpleAgent
 
 class WrappedEnv(OpenAIGym):    
-    featurized_obs_shape = [(366,), (372,), (134,)] # index in this array indicates the feature space version
+    featurized_obs_shape = [(366,), (372,), (134,), (1,11,11)] # index in this array indicates the feature space version
 
     def __init__(self, gym, feature_version=0, visualize=False):
         self.gym = gym
@@ -50,6 +50,7 @@ def featurize(obs, game_type, simple_agent, action_space, version=0):
     # expand this using logic from SimpleAgent
 
     board = obs["board"].reshape(-1).astype(np.float32)
+    board2d = obs["board"]
     bomb_blast_strength = obs["bomb_blast_strength"].reshape(-1).astype(np.float32)
     bomb_life = obs["bomb_life"].reshape(-1).astype(np.float32)
     position = make_np_float(obs["position"])
@@ -78,6 +79,7 @@ def featurize(obs, game_type, simple_agent, action_space, version=0):
     else:
         # give our own agent a set identity
         np.place(board, board == own_identity, 7)
+        np.place(board2d, board2d == own_identity, 7)
         # if we're in the team game, identify individual enemies
         # in the ffa game, give all enemies a shared identity (for faster learning)
         if game_type == constants.GameType.FFA:
@@ -90,9 +92,13 @@ def featurize(obs, game_type, simple_agent, action_space, version=0):
             np.place(board, board == enemies[0], -1)
             np.place(board, board == enemies[1], -2)
             np.place(board, board == teammate, 14)
+            np.place(board2d, board2d == enemies[0], -1)
+            np.place(board2d, board2d == enemies[1], -2)
+            np.place(board2d, board2d == teammate, 14)
 
         # normalise the inputs
         board = board/10
+        board2d = board2d/10
         ammo = ammo/10
         blast_strength = blast_strength/10
         bomb_blast_strength = bomb_blast_strength/10
@@ -101,13 +107,15 @@ def featurize(obs, game_type, simple_agent, action_space, version=0):
         # placeholder
         # replace this with logic from simpleagent to indicate whether directions are safe or not
         safe_action_heuristics = [0] * 6
-        action = simple_agent.act(obs, action_space)
-        safe_action_heuristics[action] = 1
+        # action = simple_agent.act(obs, action_space)
+        # safe_action_heuristics[action] = 1
 
         if version == 1:
             neural_net_input = np.concatenate((board, bomb_blast_strength, bomb_life, ammo, blast_strength, can_kick, safe_action_heuristics))
         elif version == 2:
             neural_net_input = np.concatenate((board, np.array(bomb_blast_strength.min(), ndmin=1), np.array(bomb_blast_strength.max(), ndmin=1), np.array(bomb_life.min(), ndmin=1), np.array(bomb_life.max(), ndmin=1), ammo, blast_strength, can_kick, safe_action_heuristics))
+        elif version == 3:
+            neural_net_input = np.expand_dims(board2d, axis=0)
 
     return neural_net_input
     
