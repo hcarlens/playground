@@ -148,7 +148,7 @@ class AgentTrainer:
     def run(self):
         # Instantiate and run the environment.
         wrapped_env = WrappedEnv(self.env, feature_version=self.training_config.feature_version, visualize=self.training_config.render)
-        runner = Runner(agent=self.agent, environment=wrapped_env, use_simple_rewards= self.use_simple_rewards)
+        runner = Runner(agent=self.agent, environment=wrapped_env, use_simple_rewards= self.training_config.use_simple_rewards)
 
         num_episodes = self.training_config.num_episodes
         print('Running training loop for', num_episodes, 'episodes')

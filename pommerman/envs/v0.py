@@ -20,6 +20,7 @@ from .. import utility
 from pommerman.forward_models.original_forward_model import OriginalForwardModel
 from pommerman.forward_models.first_to_die_forward_model import FirstToDieForwardModel
 from pommerman.forward_models.weighted_forward_model import WeightedForwardModel
+from pommerman.forward_models.simple_forward_model import SimpleForwardModel
 
 
 class Pomme(gym.Env):
