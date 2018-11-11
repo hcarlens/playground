@@ -60,7 +60,8 @@ class Pomme(gym.Env):
         self.model = {
             'original':  OriginalForwardModel(),
             'weighted':  WeightedForwardModel(),
-            'firsttodie': FirstToDieForwardModel()
+            'firsttodie': FirstToDieForwardModel(),
+            'simple': SimpleForwardModel()
             }[forward_model]
 
         print('Using {0} model'.format(forward_model))

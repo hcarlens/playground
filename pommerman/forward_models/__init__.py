@@ -2,3 +2,4 @@
 from . import original_forward_model
 from . import weighted_forward_model
 from . import first_to_die_forward_model
+from . import simple_forward_model
