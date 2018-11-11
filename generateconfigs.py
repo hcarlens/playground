@@ -22,12 +22,13 @@ def main():
                 dict(type='conv2d', size=64, window=3, stride=2),
                 dict(type='flatten'),
                 dict(type='dense', size=512)
+        ],
         [
                 dict(type='conv2d', size=36, window=5, stride=1),
                 dict(type='conv2d', size=81, window=3, stride=1),
                 dict(type='flatten'),
                 dict(type='dense', size=512)
-            ],
+        ],
         [
                 dict(type='conv2d', size=81, window=3, stride=1),
                 dict(type='flatten'),
@@ -65,7 +66,7 @@ def main():
                                 for variable_noise in variable_noises:
                                     for forward_model in forward_models:
                                         for rl_agent in rl_agents:
-                                            for use_simple_reward in use_simple_reward:
+                                            for use_simple_reward in use_simple_rewards:
                                                 if rl_agent == 'DQN':
                                                     for target_sync_frequency in target_sync_frequencies: # this only applies to DQNs
                                                         for memory in dqnmemories:
