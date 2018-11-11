@@ -26,7 +26,7 @@ class TrainingConfig:
             model_directory=None, discount=None, variable_noise=None, neural_net=None,
             batching_capacity=None, double_q_model=None, target_sync_frequency=None,
             optimizer_type=None, optimizer_lr=None, max_episode_timesteps=None, forward_model=None,
-            environment=None, feature_version=None, actions_exploration=None, memory=None):
+            environment=None, feature_version=None, actions_exploration=None, memory=None, use_simple_rewards=False):
         self.rl_agent = rl_agent if rl_agent else 'DQN'
         self.num_episodes = num_episodes if num_episodes else 10000
         self.opponents = opponents if opponents else 'SSS'
@@ -49,6 +49,7 @@ class TrainingConfig:
         self.environment = environment.lower() if environment else 'ffa'
         self.feature_version = feature_version if feature_version else 2
         self.forward_model = forward_model if forward_model else 'original'
+        self.use_simple_rewards = use_simple_rewards
 
 def createAgent(training_config, action_space_dim):
     """ Create an agent based on a set of configs """
@@ -147,7 +148,7 @@ class AgentTrainer:
     def run(self):
         # Instantiate and run the environment.
         wrapped_env = WrappedEnv(self.env, feature_version=self.training_config.feature_version, visualize=self.training_config.render)
-        runner = Runner(agent=self.agent, environment=wrapped_env)
+        runner = Runner(agent=self.agent, environment=wrapped_env, use_simple_rewards= self.training_config.use_simple_rewards)
 
         num_episodes = self.training_config.num_episodes
         print('Running training loop for', num_episodes, 'episodes')
