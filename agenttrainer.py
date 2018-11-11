@@ -49,7 +49,7 @@ class TrainingConfig:
         self.environment = environment.lower() if environment else 'ffa'
         self.feature_version = feature_version if feature_version else 2
         self.forward_model = forward_model if forward_model else 'original'
-        self.use_simple_rewards = use_simple_rewards
+        self.use_simple_rewards = use_simple_rewards if use_simple_rewards else False
 
 def createAgent(training_config, action_space_dim):
     """ Create an agent based on a set of configs """

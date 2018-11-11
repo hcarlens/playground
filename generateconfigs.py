@@ -50,7 +50,6 @@ def main():
     forward_models = ['simple','firsttodie']
     target_sync_frequencies = [10000] # from DQN paper
     batching_capacities = [32] # 32 from DQN paper
-    use_simple_rewards = [True, False]
     feature_versions = [3]
     # also consider trying: different types of memory, batching capacities
 
@@ -65,35 +64,37 @@ def main():
                             for discount in discounts:
                                 for variable_noise in variable_noises:
                                     for forward_model in forward_models:
+                                        use_simple_reward = False
+                                        if forward_model == 'simple':
+                                            use_simple_reward = True
                                         for rl_agent in rl_agents:
-                                            for use_simple_reward in use_simple_rewards:
-                                                if rl_agent == 'DQN':
-                                                    for target_sync_frequency in target_sync_frequencies: # this only applies to DQNs
-                                                        for memory in dqnmemories:
-                                                            # create config file
-                                                            tc = TrainingConfig(rl_agent=rl_agent, optimizer_type=optimizer_type, optimizer_lr=optimizer_lr,
-                                                            neural_net=neural_net, discount=discount, variable_noise=variable_noise, num_episodes=args.episodes,
-                                                            opponents=args.opponents, target_sync_frequency=target_sync_frequency, feature_version=feature_version, 
-                                                            forward_model=forward_model, batching_capacity=batching_capacity, memory=memory, actions_exploration=actions_exploration, use_simple_rewards= use_simple_reward)
-
-                                                            # write config file
-                                                            with open(args.config_directory + '/config_' + str(current_config_num) + '.yml', 'w+') as outfile:
-                                                                yaml.dump(tc, outfile, default_flow_style=False)
-                                                                print('Config', current_config_num, 'done.')
-                                                                current_config_num += 1
-                                                else:
-                                                    for memory in ppomemories:
+                                            if rl_agent == 'DQN':
+                                                for target_sync_frequency in target_sync_frequencies: # this only applies to DQNs
+                                                    for memory in dqnmemories:
                                                         # create config file
                                                         tc = TrainingConfig(rl_agent=rl_agent, optimizer_type=optimizer_type, optimizer_lr=optimizer_lr,
                                                         neural_net=neural_net, discount=discount, variable_noise=variable_noise, num_episodes=args.episodes,
-                                                        opponents=args.opponents, feature_version=feature_version, forward_model=forward_model, batching_capacity=batching_capacity, 
-                                                        memory=memory, actions_exploration=actions_exploration, use_simple_rewards= use_simple_reward)
+                                                        opponents=args.opponents, target_sync_frequency=target_sync_frequency, feature_version=feature_version, 
+                                                        forward_model=forward_model, batching_capacity=batching_capacity, memory=memory, actions_exploration=actions_exploration, use_simple_rewards=use_simple_reward)
 
                                                         # write config file
                                                         with open(args.config_directory + '/config_' + str(current_config_num) + '.yml', 'w+') as outfile:
                                                             yaml.dump(tc, outfile, default_flow_style=False)
                                                             print('Config', current_config_num, 'done.')
                                                             current_config_num += 1
+                                            else:
+                                                for memory in ppomemories:
+                                                    # create config file
+                                                    tc = TrainingConfig(rl_agent=rl_agent, optimizer_type=optimizer_type, optimizer_lr=optimizer_lr,
+                                                    neural_net=neural_net, discount=discount, variable_noise=variable_noise, num_episodes=args.episodes,
+                                                    opponents=args.opponents, feature_version=feature_version, forward_model=forward_model, batching_capacity=batching_capacity, 
+                                                    memory=memory, actions_exploration=actions_exploration, use_simple_rewards=use_simple_reward)
+
+                                                    # write config file
+                                                    with open(args.config_directory + '/config_' + str(current_config_num) + '.yml', 'w+') as outfile:
+                                                        yaml.dump(tc, outfile, default_flow_style=False)
+                                                        print('Config', current_config_num, 'done.')
+                                                        current_config_num += 1
         
 
 if __name__ == '__main__':
