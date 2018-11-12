@@ -50,7 +50,7 @@ def featurize(obs, game_type, simple_agent, action_space, version=0):
     # expand this using logic from SimpleAgent
 
     board = obs["board"].reshape(-1).astype(np.float32)
-    board2d = obs["board"]
+    board2d = obs["board"].copy()
     bomb_blast_strength = obs["bomb_blast_strength"].reshape(-1).astype(np.float32)
     bomb_life = obs["bomb_life"].reshape(-1).astype(np.float32)
     position = make_np_float(obs["position"])
