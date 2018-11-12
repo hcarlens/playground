@@ -15,7 +15,7 @@ def main():
     args = parser.parse_args()
 
     rl_agents = ['PPO', 'DQN']
-    optimizer_types = ['adam','rmsprop'] # from DQN paper
+    optimizer_types = ['rmsprop'] # from DQN paper
     optimizer_lrs = [0.00025] # from DQN paper
     neural_nets = [None, None, None, None]
     neural_nets[2] = [
@@ -45,9 +45,9 @@ def main():
     discounts = [0.99] # from DQN paper
     variable_noises = [None]
     actions_explorations = [{'type':'epsilon_decay', 'initial_epsilon':1.0, 'final_epsilon':0.01, 'timesteps':500000}]
-    ppomemories = [{'type':'replay', 'include_next_states': False, 'capacity':100000}]
+    ppomemories = [None]
     dqnmemories = [{'type':'replay', 'include_next_states': True, 'capacity':100000}]
-    forward_models = ['firsttodie']
+    forward_models = ['enhancedfirsttodie','firsttodie']
     target_sync_frequencies = [10000] # from DQN paper
     batching_capacities = [32] # 32 from DQN paper
     feature_versions = [2,3]
