@@ -33,7 +33,7 @@ class FirstToDieForwardModel(original_forward_model.OriginalForwardModel):
                 return [10 * int(agent.is_alive) - 10 for agent in agents]
             elif len(alive_agents) == 2:
                 # Two agents have died. Give them -5. Everyone else gets 0.
-                return [2 * int(agent.is_alive) - 2 for agent in agents]
+                return [5 * int(agent.is_alive) - 5 for agent in agents]
             else:
                 # This shouldn't be invoked, but leaving it here in case we forgot about a scenario.
                 # Game running: 0 for alive, -1 for dead.
