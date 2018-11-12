@@ -23,17 +23,17 @@ class FirstToDieForwardModel(original_forward_model.OriginalForwardModel):
 
         if game_type == constants.GameType.FFA:
             if len(alive_agents) == 1:
-                # An agent won. Give them +1, others -1.
-                return [2 * int(agent.is_alive) - 1 for agent in agents]
+                # An agent won. Give them +10, others -1.
+                return [11 * int(agent.is_alive) - 1 for agent in agents]
             elif step_count >= max_steps:
-                # Game is over from time. Everyone gets -1.
-                return [-1] * 4
+                # Game is over from time. Everyone gets -5.
+                return [-5] * 4
             elif len(alive_agents) == 3:
                 # One agent has died. Give them -10. Everyone else gets 0.
                 return [10 * int(agent.is_alive) - 10 for agent in agents]
             elif len(alive_agents) == 2:
-                # Two agents have died. Give them -5. Everyone else gets 0.
-                return [5 * int(agent.is_alive) - 5 for agent in agents]
+                # Two agents have died. Give them -2. Everyone else gets 0.
+                return [2 * int(agent.is_alive) - 2 for agent in agents]
             else:
                 # This shouldn't be invoked, but leaving it here in case we forgot about a scenario.
                 # Game running: 0 for alive, -1 for dead.

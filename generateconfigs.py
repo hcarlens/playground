@@ -9,15 +9,16 @@ def main():
     parser.add_argument(
         "--config_directory", default='configs', help="Location to store generated config files")
     parser.add_argument(
-        "--episodes", type=int, default=100000, help="Integer. Number of episodes to run.")
+        "--episodes", type=int, default=200000, help="Integer. Number of episodes to run.")
     parser.add_argument(
         "--opponents", default=None, help="Which agents to train against, out of simple and random. E.g. SSS = three simple agents, SRR = 1 simple and 2 random. ")
     args = parser.parse_args()
 
     rl_agents = ['PPO', 'DQN']
-    optimizer_types = ['rmsprop'] # from DQN paper
+    optimizer_types = ['adam','rmsprop'] # from DQN paper
     optimizer_lrs = [0.00025] # from DQN paper
-    neural_nets = [
+    neural_nets = [None, None, None, None]
+    neural_nets[2] = [
         [
                 dict(type='dense', size=200),
                 dict(type='dropout', rate=0.1)
@@ -27,7 +28,8 @@ def main():
                 dict(type='dropout', rate=0.1),
                 dict(type='dense', size=64),
                 dict(type='dropout', rate=0.1)
-        ],
+        ]]
+    neural_nets[3] = [
         [
                 dict(type='conv2d', size=16, window=3, stride=1),
                 dict(type='flatten'),
@@ -42,13 +44,13 @@ def main():
         ]
     discounts = [0.99] # from DQN paper
     variable_noises = [None]
-    actions_explorations = [{'type':'epsilon_decay', 'initial_epsilon':1.0, 'final_epsilon':0.01, 'timesteps':100000}]
+    actions_explorations = [{'type':'epsilon_decay', 'initial_epsilon':1.0, 'final_epsilon':0.01, 'timesteps':500000}]
     ppomemories = [{'type':'replay', 'include_next_states': False, 'capacity':100000}]
     dqnmemories = [{'type':'replay', 'include_next_states': True, 'capacity':100000}]
     forward_models = ['firsttodie']
     target_sync_frequencies = [10000] # from DQN paper
     batching_capacities = [32] # 32 from DQN paper
-    feature_versions = [3]
+    feature_versions = [2,3]
     # also consider trying: different types of memory, batching capacities
 
     current_config_num = 0
@@ -58,7 +60,7 @@ def main():
             for batching_capacity in batching_capacities:
                 for optimizer_type in optimizer_types:
                     for optimizer_lr in optimizer_lrs:
-                        for neural_net in neural_nets:
+                        for neural_net in neural_nets[feature_version]:
                             for discount in discounts:
                                 for variable_noise in variable_noises:
                                     for forward_model in forward_models:
