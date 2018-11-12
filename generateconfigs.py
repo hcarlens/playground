@@ -19,27 +19,22 @@ def main():
     optimizer_lrs = [0.00025] # from DQN paper
     neural_nets = [
         [
-                dict(type='conv2d', size=64, window=3, stride=2),
-                dict(type='flatten'),
-                dict(type='dense', size=512)
+                dict(type='dense', size=200, dropout=0.1)
         ],
         [
-                dict(type='conv2d', size=36, window=5, stride=1),
-                dict(type='conv2d', size=81, window=3, stride=1),
-                dict(type='flatten'),
-                dict(type='dense', size=512)
+                dict(type='dense', size=64, dropout=0.1),
+                dict(type='dense', size=64, dropout=0.1)
         ],
         [
-                dict(type='conv2d', size=81, window=3, stride=1),
+                dict(type='conv2d', size=16, window=3, stride=1),
                 dict(type='flatten'),
-                dict(type='dense', size=512)
+                dict(type='dense', size=512, dropout=0.1)
         ],
         [
-                dict(type='conv2d', size=32, window=8, stride=4),
-                dict(type='conv2d', size=64, window=4, stride=2),
-                dict(type='conv2d', size=32, window=3, stride=1),
+                dict(type='conv2d', size=16, window=4, stride=4),
+                dict(type='conv2d', size=8, window=8, stride=2),
                 dict(type='flatten'),
-                dict(type='dense', size=512)
+                dict(type='dense', size=512, dropout=0.1)
         ]
         ]
     discounts = [0.99] # from DQN paper
@@ -47,7 +42,7 @@ def main():
     actions_explorations = [{'type':'epsilon_decay', 'initial_epsilon':1.0, 'final_epsilon':0.01, 'timesteps':100000}]
     ppomemories = [{'type':'replay', 'include_next_states': False, 'capacity':100000}]
     dqnmemories = [{'type':'replay', 'include_next_states': True, 'capacity':100000}]
-    forward_models = ['simple','firsttodie']
+    forward_models = ['firsttodie']
     target_sync_frequencies = [10000] # from DQN paper
     batching_capacities = [32] # 32 from DQN paper
     feature_versions = [3]
