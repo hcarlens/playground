@@ -19,22 +19,25 @@ def main():
     optimizer_lrs = [0.00025] # from DQN paper
     neural_nets = [
         [
-                dict(type='dense', size=200, dropout=0.1)
+                dict(type='dense', size=200),
+                dict(type='dropout', rate=0.1)
         ],
         [
-                dict(type='dense', size=64, dropout=0.1),
-                dict(type='dense', size=64, dropout=0.1)
+                dict(type='dense', size=64),
+                dict(type='dropout', rate=0.1),
+                dict(type='dense', size=64),
+                dict(type='dropout', rate=0.1)
         ],
         [
                 dict(type='conv2d', size=16, window=3, stride=1),
                 dict(type='flatten'),
-                dict(type='dense', size=512, dropout=0.1)
+                dict(type='dense', size=512)
         ],
         [
                 dict(type='conv2d', size=16, window=4, stride=4),
                 dict(type='conv2d', size=8, window=8, stride=2),
                 dict(type='flatten'),
-                dict(type='dense', size=512, dropout=0.1)
+                dict(type='dense', size=512)
         ]
         ]
     discounts = [0.99] # from DQN paper
