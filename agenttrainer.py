@@ -4,7 +4,7 @@ import os
 import datetime
 import yaml
 
-from pommerman.agents import SimpleAgent, RandomAgent, BaseAgent
+from pommerman.agents import SimpleAgent, RandomAgent, BaseAgent, StaticAgent, PacifistRandomAgent
 from pommerman.configs import ffa_v0_fast_env, team_competition_env
 from pommerman.envs.v0 import Pomme
 
@@ -135,6 +135,12 @@ class AgentTrainer:
         for i in range(training_config.opponents.count('R')):
             agents.append(RandomAgent(config["agent"](num_agents, config["game_type"])))
             num_agents += 1
+        for i in range(training_config.opponents.count('P')):
+            agents.append(PacifistRandomAgent(config["agent"](num_agents, config["game_type"])))
+            num_agents += 1
+        for i in range(training_config.opponents.count('T')):
+            agents.append(StaticAgent(config["agent"](num_agents, config["game_type"])))
+            num_agents += 1
 
         # Add TensorforceAgent
         agents.append(TensorforceAgent(config["agent"](3, config["game_type"])))
@@ -179,7 +185,7 @@ def main():
     parser.add_argument(
         "--agent", default=None, help="What type of RL agent to train. Options: DQN, PPO. ")
     parser.add_argument(
-        "--opponents", default=None, help="Which agents to train against, out of simple and random. E.g. SSS = three simple agents, SRR = 1 simple and 2 random. ")
+        "--opponents", default=None, help="Which agents to train against, out of simple/random/static/pacifist. E.g. SSS = three simple agents, SRR = 1 simple and 2 random. ")
     parser.add_argument(
         "--discount", default=None, help="Gamma parameter, defining how much to value future timesteps vs current timesteps.")
     parser.add_argument(

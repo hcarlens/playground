@@ -6,3 +6,5 @@ from .player_agent import PlayerAgent
 from .random_agent import RandomAgent
 from .simple_agent import SimpleAgent
 from .tensorforce_agent import TensorForceAgent
+from .pacifist_random_agent import PacifistRandomAgent
+from .static_agent import StaticAgent
