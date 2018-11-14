@@ -22,14 +22,13 @@ class SimpleForwardModel(original_forward_model.OriginalForwardModel):
         if game_type == constants.GameType.FFA:
             if len(alive_agents) == 1:
                 # An agent won. Give them +1000
-                agents[alive_agents[0]] = 1000
-                return agents
+                return [1000 * int(agent.is_alive) for agent in agents]
             elif step_count >= max_steps:
-                # Game is over from time. Everyone gets -1000.
+                # Game is over from time. Everyone gets -20.
                 return [-20] * 4
             else:
                 # Game running: 0 for alive, -1 for dead.
-                return [int(agent.is_alive) - 20 for agent in agents]
+                return [int(agent.is_alive) - 1 for agent in agents]
         else:
             # We are playing a team game.
             if any_lst_equal(alive_agents, [[0, 2], [0], [2]]):
