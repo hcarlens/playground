@@ -3,8 +3,8 @@ import numpy as np
 from pommerman import constants
 from pommerman.agents import SimpleAgent
 
-class WrappedEnv(OpenAIGym):    
-    featurized_obs_shape = [(366,), (372,), (134,), (1, 11, 11), (3, 11, 11)] # index in this array indicates the feature space version
+class WrappedEnv(OpenAIGym):
+    featurized_obs_shape = [(366,), (372,), (134,), (1, 11, 11), (7, 11, 11), (1098,)] # index in this array indicates the feature space version
 
     def __init__(self, gym, feature_version=0, visualize=False):
         self.gym = gym
@@ -95,14 +95,67 @@ def featurize(obs, game_type, simple_agent, action_space, version=0):
             np.place(board2d, board2d == enemies[0], -1)
             np.place(board2d, board2d == enemies[1], -2)
             np.place(board2d, board2d == teammate, 14)
+        
+        passage_board = np.zeros((board.shape))
+        rigid_board = np.zeros((board.shape))
+        wood_board = np.zeros((board.shape))
+        bomb_board = np.zeros((board.shape))
+        powerup_board = np.zeros((board.shape))
+        enemy_board = np.zeros((board.shape))
+        us_board = np.zeros((board.shape))
 
-        # normalise the inputs
-        board = board/10
-        board2d = board2d/10
-        ammo = ammo/10
-        blast_strength = blast_strength/10
-        bomb_blast_strength = bomb_blast_strength/10
-        bomb_life = bomb_life/10
+        if version <= 3:
+            # normalise the inputs
+            board = board/10
+            board2d = board2d/10
+            ammo = ammo/10
+            blast_strength = blast_strength/10
+            bomb_blast_strength = bomb_blast_strength/10
+            bomb_life = bomb_life/10
+        elif version == 4:
+            # skip normalization and one-hot encode the board
+            board = obs["board"].copy()
+
+            # make a bunch of empty boards
+            
+            # populate those boards with 1s in the position of relevant elements,
+            # using the main board as a source
+            multi_place(passage_board, board,
+                constants.Item.Passage.value, constants.Item.Flames.value)
+            np.place(rigid_board, board == constants.Item.Rigid.value, 1)
+            np.place(wood_board, board == constants.Item.Wood.value, 1)
+            np.place(bomb_board, board == constants.Item.Bomb.value, 1)
+            multi_place(powerup_board, board,
+                constants.Item.ExtraBomb.value, constants.Item.IncrRange.value, constants.Item.Kick.value)
+            multi_place(enemy_board, board,
+                constants.Item.AgentDummy.value,
+                constants.Item.Agent0.value,
+                constants.Item.Agent1.value,
+                constants.Item.Agent2.value)
+            np.place(us_board, board == constants.Item.Agent3.value, 1)
+        elif version == 5:
+            # skip normalization and one-hot encode the board
+            board = obs["board"].copy()
+
+            # compress the number of discrete elements to encode.
+            # passage, rigid, wood, bomb stay as they are (0,1,2,3)
+            passage = 0 # from 0,4 (flames are only dangerous for one timestep)
+            powerup = 4 # from 6,7,8
+            enemy = 5 # from 9,10,11,12
+            us = 6 # from 13
+            board_max_value = 6
+
+            np.place(board, board == 4, passage)
+            np.place(board, board == 6, powerup)
+            np.place(board, board == 7, powerup)
+            np.place(board, board == 8, powerup)
+            np.place(board, board == 9, enemy)
+            np.place(board, board == 10, enemy)
+            np.place(board, board == 11, enemy)
+            np.place(board, board == 12, enemy)
+            np.place(board, board == 13, us)
+
+            board = np.eye(board_max_value + 1)[board]
 
         # placeholder
         # replace this with logic from simpleagent to indicate whether directions are safe or not
@@ -117,7 +170,27 @@ def featurize(obs, game_type, simple_agent, action_space, version=0):
         elif version == 3:
             neural_net_input = np.expand_dims(board2d, axis=0)
         elif version == 4:
-            neural_net_input = np.array([board2d, board2d, board2d])
+            # ConvNet
+            neural_net_input = np.array([passage_board, rigid_board, wood_board, bomb_board, powerup_board, enemy_board, us_board])
+        elif version == 5:
+            # one-hot encoding
+            neural_net_input = np.concatenate((
+                board.reshape(-1).astype(np.float32),
+                bomb_blast_strength.reshape(-1).astype(np.float32),
+                bomb_life.reshape(-1).astype(np.float32),
+                ammo.reshape(-1).astype(np.float32),
+                blast_strength.reshape(-1).astype(np.float32),
+                can_kick.reshape(-1).astype(np.float32),
+                safe_action_heuristics
+            ))
+        else:
+            raise "Config version not supported"
 
     return neural_net_input
-    
+
+
+# Similar to numpy.place, but accepts several mask inputs,
+# and places a 1 in the matching position in the target.
+def multi_place(target, source, *masks):
+    for i in range(len(masks)):
+        np.place(target, source == masks[i], 1)
