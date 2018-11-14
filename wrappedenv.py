@@ -4,7 +4,7 @@ from pommerman import constants
 from pommerman.agents import SimpleAgent
 
 class WrappedEnv(OpenAIGym):    
-    featurized_obs_shape = [(366,), (372,), (134,), (1,11,11)] # index in this array indicates the feature space version
+    featurized_obs_shape = [(366,), (372,), (134,), (1, 11, 11), (3, 11, 11)] # index in this array indicates the feature space version
 
     def __init__(self, gym, feature_version=0, visualize=False):
         self.gym = gym
@@ -116,6 +116,8 @@ def featurize(obs, game_type, simple_agent, action_space, version=0):
             neural_net_input = np.concatenate((board, np.array(bomb_blast_strength.min(), ndmin=1), np.array(bomb_blast_strength.max(), ndmin=1), np.array(bomb_life.min(), ndmin=1), np.array(bomb_life.max(), ndmin=1), ammo, blast_strength, can_kick, safe_action_heuristics))
         elif version == 3:
             neural_net_input = np.expand_dims(board2d, axis=0)
+        elif version == 4:
+            neural_net_input = np.array([board2d, board2d, board2d])
 
     return neural_net_input
     

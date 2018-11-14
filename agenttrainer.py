@@ -47,8 +47,8 @@ class TrainingConfig:
         self.optimizer_lr = optimizer_lr if optimizer_lr else 1e-3
         self.max_episode_timesteps = max_episode_timesteps if max_episode_timesteps else 500
         self.environment = environment.lower() if environment else 'ffa'
-        self.feature_version = feature_version if feature_version else 2
-        self.forward_model = forward_model if forward_model else 'original'
+        self.feature_version = feature_version if feature_version else 4
+        self.forward_model = forward_model if forward_model else 'enhancedfirsttodie'
         self.use_simple_rewards = use_simple_rewards if use_simple_rewards else False
 
 def createAgent(training_config, action_space_dim):
