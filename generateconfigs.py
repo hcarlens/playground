@@ -79,7 +79,7 @@ def main():
     target_sync_frequencies = [10000] # from DQN paper
     batching_capacities = [32] # 32 from DQN paper
     feature_versions = [2, 3, 4, 5]
-    use_immediate_rewards = [True]
+    use_immediate_rewards = [True, False]
     # also consider trying: different types of memory, batching capacities
 
     current_config_num = 0
