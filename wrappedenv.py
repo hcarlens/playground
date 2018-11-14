@@ -96,13 +96,13 @@ def featurize(obs, game_type, simple_agent, action_space, version=0):
             np.place(board2d, board2d == enemies[1], -2)
             np.place(board2d, board2d == teammate, 14)
         
-        passage_board = np.zeros((board.shape))
-        rigid_board = np.zeros((board.shape))
-        wood_board = np.zeros((board.shape))
-        bomb_board = np.zeros((board.shape))
-        powerup_board = np.zeros((board.shape))
-        enemy_board = np.zeros((board.shape))
-        us_board = np.zeros((board.shape))
+        passage_board = np.zeros((board2d.shape))
+        rigid_board = np.zeros((board2d.shape))
+        wood_board = np.zeros((board2d.shape))
+        bomb_board = np.zeros((board2d.shape))
+        powerup_board = np.zeros((board2d.shape))
+        enemy_board = np.zeros((board2d.shape))
+        us_board = np.zeros((board2d.shape))
 
         if version <= 3:
             # normalise the inputs
